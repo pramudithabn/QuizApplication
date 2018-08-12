@@ -235,12 +235,12 @@ public class FtirInterpreter extends javax.swing.JFrame {
 
         try {
 
-            System.out.println(fileName);  //?
+            System.out.println(fileName);  
             BufferedReader br = new BufferedReader(new FileReader(fileName));
             String line;
 
             while ((line = br.readLine()) != null) {
-                line = line.replaceAll("\"", " ");
+//                line = line.replaceAll("\"", " ");
                 String[] value = line.split(",");
 
 //          System.out.print(value);
