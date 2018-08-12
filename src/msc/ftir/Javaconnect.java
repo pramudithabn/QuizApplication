@@ -18,7 +18,6 @@ public class Javaconnect {
     public static Connection ConnecrDb(){
         try{
             Class.forName("com.mysql.jdbc.Driver");
-//          Connection conn =  DriverManager.getConnection("jdbc:mysql:E:\\MSCWorkspace\\Ftir\\ftir.sql");
             Connection conn =  DriverManager.getConnection("jdbc:mysql://localhost:3306/ftir","root","root");
             JOptionPane.showMessageDialog(null, "Connection Established");
             return conn;
