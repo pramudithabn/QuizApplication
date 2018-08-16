@@ -278,26 +278,7 @@ public class FtirInterpreter extends javax.swing.JFrame {
         // TODO add your handling code here:
 
         generate_spectrum();
-        /*try {
-
-            String query1 = "select WAVENUMBER, TRANSMITTANCE from input_data";
-            JDBCCategoryDataset dataset = new JDBCCategoryDataset(Javaconnect.ConnecrDb(), query1);
-            JFreeChart spec = ChartFactory.createLineChart("FTIR Spectrum", "Wavenumber", "Transmittance %", dataset, PlotOrientation.VERTICAL, false, true, true);
-            BarRenderer renderer = null;
-            CategoryPlot plot = null;
-            renderer = new BarRenderer();
-            ChartFrame frame = new ChartFrame("Spectrum", spec);
-            frame.setVisible(true);
-            frame.setSize(400, 650);
-            
-            // set the range axis to display integers only...
-        final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
-        rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-            
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, e);
-        }*/
+        
     }//GEN-LAST:event_button_specgenActionPerformed
 
     private void clearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearButtonActionPerformed
