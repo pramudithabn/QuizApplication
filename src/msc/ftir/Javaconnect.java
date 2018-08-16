@@ -19,9 +19,9 @@ public class Javaconnect {
         try{
             Class.forName("com.mysql.jdbc.Driver");
             Connection conn =  DriverManager.getConnection("jdbc:mysql://localhost:3306/ftir","root","root");
-            JOptionPane.showMessageDialog(null, "Connection Established");
+//            JOptionPane.showMessageDialog(null, "Connection Established");
             return conn;
-        } catch (ClassNotFoundException | SQLException e) {
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(null, e);
             return null;
         }

@@ -1,6 +1,5 @@
 package msc.ftir;
 
-
 import java.awt.BorderLayout;
 import net.proteanit.sql.DbUtils;
 import java.io.BufferedReader;
@@ -13,10 +12,12 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartFrame;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.data.jdbc.JDBCCategoryDataset;
+import java.util.*;
 
 
 /*
@@ -65,6 +66,7 @@ public class FtirInterpreter extends javax.swing.JFrame {
         button_specgen = new javax.swing.JButton();
         clearButton = new javax.swing.JButton();
         specPanel = new javax.swing.JPanel();
+        jButton1 = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
@@ -128,15 +130,28 @@ public class FtirInterpreter extends javax.swing.JFrame {
             }
         });
 
+        jButton1.setText("jButton1");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout specPanelLayout = new javax.swing.GroupLayout(specPanel);
         specPanel.setLayout(specPanelLayout);
         specPanelLayout.setHorizontalGroup(
             specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 510, Short.MAX_VALUE)
+            .addGroup(specPanelLayout.createSequentialGroup()
+                .addGap(69, 69, 69)
+                .addComponent(jButton1)
+                .addContainerGap(368, Short.MAX_VALUE))
         );
         specPanelLayout.setVerticalGroup(
             specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+            .addGroup(specPanelLayout.createSequentialGroup()
+                .addGap(60, 60, 60)
+                .addComponent(jButton1)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jMenu1.setText("File");
@@ -235,16 +250,15 @@ public class FtirInterpreter extends javax.swing.JFrame {
 
         try {
 
-            System.out.println(fileName);  
+            System.out.println(fileName);
             BufferedReader br = new BufferedReader(new FileReader(fileName));
             String line;
 
             while ((line = br.readLine()) != null) {
 //                line = line.replaceAll("\"", " ");
-                String[] value = line.split(",");
+                String[] value = line.split("\\s+"); //whitespace regex 
 
-//          System.out.print(value);
-//            System.out.println(line);
+
                 String sql = "insert into input_data (WAVENUMBER , TRANSMITTANCE)" + "values ('" + value[0] + "','" + value[1] + "')";
                 pst = conn.prepareStatement(sql);
                 pst.executeUpdate();
@@ -262,7 +276,9 @@ public class FtirInterpreter extends javax.swing.JFrame {
 
     private void button_specgenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_specgenActionPerformed
         // TODO add your handling code here:
-        try {
+
+        generate_spectrum();
+        /*try {
 
             String query1 = "select WAVENUMBER, TRANSMITTANCE from input_data";
             JDBCCategoryDataset dataset = new JDBCCategoryDataset(Javaconnect.ConnecrDb(), query1);
@@ -274,16 +290,14 @@ public class FtirInterpreter extends javax.swing.JFrame {
             frame.setVisible(true);
             frame.setSize(400, 650);
             
-//            specPanel.add(frame);
-//         JPanel jPanel1 = new JPanel();
-//jPanel1.setLayout(new java.awt.BorderLayout());
-//ChartPanel CP = new ChartPanel(spec);
-//jPanel1.add(CP,BorderLayout.CENTER);
-//jPanel1.validate();           
-//            
+            // set the range axis to display integers only...
+        final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+        rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+            
+
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, e);
-        }
+        }*/
     }//GEN-LAST:event_button_specgenActionPerformed
 
     private void clearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearButtonActionPerformed
@@ -302,6 +316,10 @@ public class FtirInterpreter extends javax.swing.JFrame {
             update_table();
         }
     }//GEN-LAST:event_clearButtonActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        readlist();
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -346,6 +364,7 @@ public class FtirInterpreter extends javax.swing.JFrame {
     private javax.swing.JButton button_specgen;
     private javax.swing.JButton clearButton;
     private javax.swing.JTable dataTable;
+    private javax.swing.JButton jButton1;
     private javax.swing.JDialog jDialog1;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
@@ -378,6 +397,57 @@ public class FtirInterpreter extends javax.swing.JFrame {
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(null, e);
             }
+        }
+
+    }
+
+    private void generate_spectrum() {
+        try {
+
+            String query1 = "select WAVENUMBER, TRANSMITTANCE from input_data";
+            JDBCCategoryDataset dataset = new JDBCCategoryDataset(Javaconnect.ConnecrDb(), query1);
+            JFreeChart spec = ChartFactory.createLineChart("FTIR Spectrum", "Wavenumber", "Transmittance %", dataset, PlotOrientation.VERTICAL, false, true, true);
+            BarRenderer renderer = null;
+            CategoryPlot plot = null;
+            renderer = new BarRenderer();
+            ChartFrame frame = new ChartFrame("Spectrum", spec);
+            frame.setVisible(true);
+            frame.setSize(400, 650);
+
+//            // set the range axis to display integers only...
+//            final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+//            rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e);
+        }
+    }
+
+    private void readlist() {
+        List<String> al = new ArrayList<String>();
+        try {
+            FileReader fin = new FileReader(fileName);
+            Scanner s = new Scanner(fin);
+
+            s.useDelimiter(" ");
+
+            int lineNum;
+            String A;
+
+            for (lineNum = 1; s.hasNextLine(); lineNum++) {
+
+                A = s.next();
+                if (!A.contains("##YUNITS=%T")) {
+                    al.add(A);
+                } else {
+                    continue;
+                }
+            }
+
+            for (int i = 0; i < al.size(); i++) {
+                System.out.println(al.get(i));
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e);
         }
 
     }
