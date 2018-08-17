@@ -1,23 +1,24 @@
 package msc.ftir;
 
-import java.awt.BorderLayout;
 import net.proteanit.sql.DbUtils;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import javax.swing.JFileChooser;
 import java.sql.*;
 import javax.swing.*;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartFrame;
-import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.data.jdbc.JDBCCategoryDataset;
 import java.util.*;
+import java.util.regex.*;
 
 
 /*
@@ -255,16 +256,14 @@ public class FtirInterpreter extends javax.swing.JFrame {
             String line;
 
             while ((line = br.readLine()) != null) {
-//                line = line.replaceAll("\"", " ");
-                String[] value = line.split("\\s+"); //whitespace regex 
 
+                String[] value = line.split("\\s+"); //whitespace regex 
+//              String[] value = line.split(","); //if the file is CVS 
 
                 String sql = "insert into input_data (WAVENUMBER , TRANSMITTANCE)" + "values ('" + value[0] + "','" + value[1] + "')";
                 pst = conn.prepareStatement(sql);
                 pst.executeUpdate();
-
             }
-
             br.close();
 
         } catch (Exception e) {
@@ -278,7 +277,7 @@ public class FtirInterpreter extends javax.swing.JFrame {
         // TODO add your handling code here:
 
         generate_spectrum();
-        
+
     }//GEN-LAST:event_button_specgenActionPerformed
 
     private void clearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearButtonActionPerformed
@@ -299,40 +298,15 @@ public class FtirInterpreter extends javax.swing.JFrame {
     }//GEN-LAST:event_clearButtonActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        readlist();
+//        readlist();
+        vaidateInput();
     }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(FtirInterpreter.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(FtirInterpreter.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(FtirInterpreter.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(FtirInterpreter.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-        //</editor-fold>
-        //</editor-fold>
-        //</editor-fold>
 
-        /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new FtirInterpreter().setVisible(true);
@@ -431,6 +405,94 @@ public class FtirInterpreter extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, e);
         }
 
+    }
+
+    private void vaidateInput() {
+//##YUNITS=%T 
+//397.336096 9.683705 
+//3842.201472 0.566372
+
+        Matcher regrexMatch = null;
+//        String point = "\\d{3,4}\\.\\d{6}\\s\\d{1,2}\\.\\d{6}\\s"; //[0-9]{3,4}\\.[0-9]{6}\\s[0-9]{1,2}\\.[0-9]{6}
+        String point = "\\d{3,4}\\.\\d{6}[ \\t]\\d{1,2}\\.\\d{6}\\s"; //trying for DPT file works for txt as well
+        int regtest = 0;
+        int regtest2 = 0;
+        
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(fileName));
+            String line;
+            while ((line = br.readLine()) != null) {
+
+                Pattern input_pattern = Pattern.compile(point);
+                regrexMatch = input_pattern.matcher(line);
+//                System.out.println("aaa"+line+"aaa");
+                System.out.println(line);
+                boolean m = regrexMatch.matches();
+                System.out.println(m);
+                
+                if(!regrexMatch.matches()){
+                ++regtest;
+                    System.err.println("regtest");
+                }
+                else{
+                regtest2=0;
+                }
+            }
+            br.close();
+
+            if (!(regrexMatch.matches()) && regtest>0) {
+
+                JOptionPane.showMessageDialog(null, "Data format error!");
+
+                for (int i = point.length(); i > 0; --i) {
+                    Matcher region = regrexMatch.region(0, i);
+                    if (region.matches() || region.hitEnd()) {
+                        System.out.println("Last match = " + i);
+                    }
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "Data format is correct!");
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e);
+        }
+
+
+        /*        for (int x = 0; x < dataTable.getRowCount(); x++) {
+            
+            for (int y = 0; y < dataTable.getColumnCount(); y++) {
+                
+                String a = String.valueOf(dataTable.getModel().getValueAt(x, y)); //type cast double to string
+                input_pattern.matcher(a);
+//                System.out.println(a);
+//                boolean m = regrexMatch.matches();
+//                System.out.println(m);
+            }
+        }
+         */
+    }
+
+    private void createTempFile() {
+        File tempFile = null;
+        BufferedWriter writer = null;
+
+        try {
+            tempFile = File.createTempFile("datafile", ".tmp");
+            writer = new BufferedWriter(new FileWriter(tempFile));
+            writer.write("Writing data into temp file!!!");
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } finally {
+            try {
+                if (writer != null) {
+                    writer.close();
+                }
+            } catch (Exception ex) {
+            }
+        }
+        System.out.println("Stored data in temporary file.");
     }
 
 }
