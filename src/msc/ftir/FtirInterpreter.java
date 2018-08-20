@@ -19,6 +19,7 @@ import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.data.jdbc.JDBCCategoryDataset;
 import java.util.*;
 import java.util.regex.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 
 /*
@@ -35,9 +36,8 @@ public class FtirInterpreter extends javax.swing.JFrame {
     Connection conn = null;
     ResultSet rs = null;
     PreparedStatement pst = null;
-    //private File dataFile;
-    //private String fileName = dataFile.getAbsolutePath();
     private String fileName;
+    ArrayList<Integer> errorLine = new ArrayList<>();
 
     /**
      * Creates new form HelloWorld
@@ -131,7 +131,7 @@ public class FtirInterpreter extends javax.swing.JFrame {
             }
         });
 
-        jButton1.setText("jButton1");
+        jButton1.setText("Validate");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
@@ -145,14 +145,14 @@ public class FtirInterpreter extends javax.swing.JFrame {
             .addGroup(specPanelLayout.createSequentialGroup()
                 .addGap(69, 69, 69)
                 .addComponent(jButton1)
-                .addContainerGap(368, Short.MAX_VALUE))
+                .addContainerGap(370, Short.MAX_VALUE))
         );
         specPanelLayout.setVerticalGroup(
             specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(specPanelLayout.createSequentialGroup()
                 .addGap(60, 60, 60)
                 .addComponent(jButton1)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(246, Short.MAX_VALUE))
         );
 
         jMenu1.setText("File");
@@ -199,9 +199,8 @@ public class FtirInterpreter extends javax.swing.JFrame {
                             .addComponent(button1))
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 305, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(clearButton)
-                                .addComponent(button_specgen)))))
+                            .addComponent(button_specgen)
+                            .addComponent(clearButton))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(specPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
@@ -217,25 +216,32 @@ public class FtirInterpreter extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(uploadButton)
                 .addGap(23, 23, 23)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(specPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 329, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(specPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 30, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(button_specgen)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(clearButton)
-                .addContainerGap(36, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void button1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button1ActionPerformed
+
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("txt", "xlsx", "dpt", "csv");
         JFileChooser chooser = new JFileChooser();
         chooser.showOpenDialog(null);
+//        chooser.setFileFilter(filter);
+//        chooser.setAcceptAllFileFilterUsed(rootPaneCheckingEnabled);
         File dataFile = chooser.getSelectedFile();
         fileName = dataFile.getAbsolutePath();
         jTextField1.setText(fileName);
+//fileChooser();
 
     }//GEN-LAST:event_button1ActionPerformed
 
@@ -298,8 +304,8 @@ public class FtirInterpreter extends javax.swing.JFrame {
     }//GEN-LAST:event_clearButtonActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-//        readlist();
-        vaidateInput();
+//        vaidateInputData();
+        validateFileType();
     }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
@@ -406,8 +412,20 @@ public class FtirInterpreter extends javax.swing.JFrame {
         }
 
     }
+    
+    private void fileChooser() {
+//       FileNameExtensionFilter filter = new FileNameExtensionFilter("txt", "xlsx", "dpt", "csv");
+        JFileChooser chooser = new JFileChooser();
+        chooser.showOpenDialog(null);
+//        chooser.setFileFilter(filter);
+//        chooser.setAcceptAllFileFilterUsed(rootPaneCheckingEnabled);
+        File dataFile = chooser.getSelectedFile();
+        fileName = dataFile.getAbsolutePath();
+        jTextField1.setText(fileName);
 
-    private void vaidateInput() {
+    }
+
+    private void vaidateInputData() {
 //##YUNITS=%T 
 //397.336096 9.683705 
 //3842.201472 0.566372
@@ -415,9 +433,12 @@ public class FtirInterpreter extends javax.swing.JFrame {
         Matcher regrexMatch = null;
 //        String point = "\\d{3,4}\\.\\d{6}\\s\\d{1,2}\\.\\d{6}\\s"; //[0-9]{3,4}\\.[0-9]{6}\\s[0-9]{1,2}\\.[0-9]{6}
         String point = "\\d{3,4}\\.\\d{6}[ \\t]\\d{1,2}\\.\\d{6}\\s"; //trying for DPT file works for txt as well
-        int regtest = 0;
-        int regtest2 = 0;
-        
+//        String point = "(?(#)##YUNITS=%T|\\d{3,4}\\.\\d{6}[ \\t]\\d{1,2}\\.\\d{6}\\s))";
+
+        int invalid_input = 0;
+        int valid_input = 0;
+        int lineNumber = 0;
+
         try {
             BufferedReader br = new BufferedReader(new FileReader(fileName));
             String line;
@@ -429,27 +450,29 @@ public class FtirInterpreter extends javax.swing.JFrame {
                 System.out.println(line);
                 boolean m = regrexMatch.matches();
                 System.out.println(m);
-                
-                if(!regrexMatch.matches()){
-                ++regtest;
-                    System.err.println("regtest");
+
+                if (!regrexMatch.matches()) {
+                    ++invalid_input;
+                    errorLine.add(lineNumber + 1);
+
+                } else {
+                    ++valid_input;
+
                 }
-                else{
-                regtest2=0;
-                }
+
+                ++lineNumber;
+
             }
             br.close();
 
-            if (!(regrexMatch.matches()) && regtest>0) {
+            System.out.println(invalid_input + " invalid inputs found at line #" + Arrays.toString(errorLine.toArray()));
+            System.out.println("valid inputs = " + valid_input);
+            System.out.println("Total Number of lines = " + lineNumber);
 
-                JOptionPane.showMessageDialog(null, "Data format error!");
+            if (invalid_input > 0) {
 
-                for (int i = point.length(); i > 0; --i) {
-                    Matcher region = regrexMatch.region(0, i);
-                    if (region.matches() || region.hitEnd()) {
-                        System.out.println("Last match = " + i);
-                    }
-                }
+                JOptionPane.showMessageDialog(null, "Data format error!", "Error", JOptionPane.ERROR_MESSAGE);
+
             } else {
                 JOptionPane.showMessageDialog(null, "Data format is correct!");
             }
@@ -458,19 +481,24 @@ public class FtirInterpreter extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, e);
         }
 
+    }
 
-        /*        for (int x = 0; x < dataTable.getRowCount(); x++) {
-            
-            for (int y = 0; y < dataTable.getColumnCount(); y++) {
-                
-                String a = String.valueOf(dataTable.getModel().getValueAt(x, y)); //type cast double to string
-                input_pattern.matcher(a);
-//                System.out.println(a);
-//                boolean m = regrexMatch.matches();
-//                System.out.println(m);
-            }
+    private void validateFileType() {
+
+        String filetype = "(?:[\\w]\\:|\\\\)(\\\\[a-zA-Z_\\-\\s0-9\\.]+)+\\.(txt|csv|dpt|doc|docx|xls|xlsx)";
+        Pattern fileExtPattern = Pattern.compile(filetype);
+
+        Matcher mtch = fileExtPattern.matcher(fileName);
+        if (mtch.matches()) {
+
+            JOptionPane.showMessageDialog(null, "Vaild file format.");
+            System.out.println(fileName);
+            System.out.print(mtch.matches());
+
+        } else {
+            JOptionPane.showMessageDialog(null, "Invalid file format!", "Error", JOptionPane.ERROR_MESSAGE);
+
         }
-         */
     }
 
     private void createTempFile() {
@@ -494,5 +522,7 @@ public class FtirInterpreter extends javax.swing.JFrame {
         }
         System.out.println("Stored data in temporary file.");
     }
+
+    
 
 }
