@@ -1,6 +1,7 @@
 package msc.ftir;
 
 import java.awt.BorderLayout;
+import java.awt.Toolkit;
 import net.proteanit.sql.DbUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -22,6 +23,8 @@ import java.util.*;
 import java.util.regex.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jfree.chart.ChartPanel;
+import javax.swing.UIManager;
+import javax.swing.plaf.metal.MetalLookAndFeel;
 
 
 /*
@@ -45,7 +48,32 @@ public class FtirInterpreter extends javax.swing.JFrame {
      * Creates new form HelloWorld
      */
     public FtirInterpreter() {
+        
+//        this.setUndecorated(false);
+//        this.setAlwaysOnTop(true);
+//        this.setResizable(true);
+//        this.setVisible(true);
         initComponents();
+        
+        JFrame.setDefaultLookAndFeelDecorated(true);
+        try{
+        UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+        
+        Toolkit tk =  Toolkit.getDefaultToolkit();
+        
+        int scrnsizeX = (int) tk.getScreenSize().getWidth();
+        int scrnsizeY = (int) tk.getScreenSize().getHeight();
+        
+//        System.out.print(scrnsizeX + " " + scrnsizeY);
+        
+        this.setSize(scrnsizeX, scrnsizeY-40);
+        }
+        catch(Exception e){
+            System.out.println(e);
+        }
+        
+        
+        
         conn = Javaconnect.ConnecrDb();
         update_table();
     }
@@ -67,7 +95,6 @@ public class FtirInterpreter extends javax.swing.JFrame {
         uploadButton = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         dataTable = new javax.swing.JTable();
-        jPanel1 = new javax.swing.JPanel();
         clearButton = new javax.swing.JButton();
         button_specgen = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
@@ -130,22 +157,7 @@ public class FtirInterpreter extends javax.swing.JFrame {
         ));
         jScrollPane1.setViewportView(dataTable);
 
-        specPanel.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 100, 305, 435));
-
-        jPanel1.setBackground(new java.awt.Color(28, 67, 130));
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 360, Short.MAX_VALUE)
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-        );
-
-        specPanel.add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 130, -1, 80));
+        specPanel.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 100, 305, 440));
 
         clearButton.setText("Clear");
         clearButton.addActionListener(new java.awt.event.ActionListener() {
@@ -195,13 +207,11 @@ public class FtirInterpreter extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(specPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 696, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+            .addComponent(specPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(specPanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 576, Short.MAX_VALUE)
+            .addComponent(specPanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 739, Short.MAX_VALUE)
         );
 
         pack();
@@ -230,73 +240,75 @@ public class FtirInterpreter extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem2ActionPerformed
 
     private void uploadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadButtonActionPerformed
+        if (validateFileType()) {
 
-        vaidateInputData();
-        try {
+            vaidateInputData();
+            try {
 
-            System.out.println(fileName);
-            BufferedReader br = new BufferedReader(new FileReader(fileName));
-            String line;
-            String[] value = null;
+                System.out.println(fileName);
+                BufferedReader br = new BufferedReader(new FileReader(fileName));
+                String line;
+                String[] value = null;
 
-            while ((line = br.readLine()) != null) {
+                while ((line = br.readLine()) != null) {
 
-                //Make sure the line is not null, not empty, and contains data format
-                if (!line.equals("") && line.matches("\\d{3,4}\\.\\d{6}[ \\t]\\d{1,2}\\.\\d{6}\\s")) {
-                    
-                    
-                    String cvsfiletype = "(?:[\\w]\\:|\\\\)(\\\\[a-zA-Z_\\-\\s0-9\\.]+)+\\.(csv)";
-                    String txtfiletype = "(?:[\\w]\\:|\\\\)(\\\\[a-zA-Z_\\-\\s0-9\\.]+)+\\.(txt)";
-                    String xlsfiletype = "(?:[\\w]\\:|\\\\)(\\\\[a-zA-Z_\\-\\s0-9\\.]+)+\\.(xls|xlsx)";
-                    String docfiletype = "(?:[\\w]\\:|\\\\)(\\\\[a-zA-Z_\\-\\s0-9\\.]+)+\\.(doc|docx)";
-                    String dptfiletype = "(?:[\\w]\\:|\\\\)(\\\\[a-zA-Z_\\-\\s0-9\\.]+)+\\.(dpt)";
-        
-                    Pattern fileExtPatternCVS = Pattern.compile(cvsfiletype);
-                    Pattern fileExtPatternTXT = Pattern.compile(txtfiletype);
-                    Pattern fileExtPatternXLS = Pattern.compile(xlsfiletype);
-                    Pattern fileExtPatternDOC = Pattern.compile(docfiletype);
-                    Pattern fileExtPatternDPT = Pattern.compile(dptfiletype);
+                    //Make sure the line is not null, not empty, and contains data format
+//                    if (!line.equals("") && line.matches("\\d{3,4}\\.\\d{6}[ \\t]\\d{1,2}\\.\\d{6}\\s")) {
+                        if (!line.equals("") && line.matches("\\d{3,4}\\.\\d{5,6}(\\,|[ \\t])\\d{1,2}\\.\\d{5,6}(\\,|[ \\t]*)")) {
 
-                    Matcher mtch1 = fileExtPatternCVS.matcher(fileName);
-                    Matcher mtch2 = fileExtPatternTXT.matcher(fileName);
-                    Matcher mtch3 = fileExtPatternXLS.matcher(fileName);
-                    Matcher mtch4 = fileExtPatternDOC.matcher(fileName);
-                    Matcher mtch5 = fileExtPatternDPT.matcher(fileName);
-                    
-        
-                    
-                    //if the file is CVS
-                    if(mtch1.matches()){
-                        value = line.split(","); //if the file is CVS
-                    }
-                    //if the file is text
-                    else if(mtch2.matches()){
-                        value = line.split("\\s+"); //whitespace regex 
-                    }
-                    else if(mtch3.matches()){
-                        value = line.split(","); //whitespace regex 
-                    }
-                    
-                    
+                        String cvsfiletype = "(?:[\\w]\\:|\\\\)(\\\\[a-zA-Z_\\-\\s0-9\\.]+)+\\.(csv)";
+                        String txtfiletype = "(?:[\\w]\\:|\\\\)(\\\\[a-zA-Z_\\-\\s0-9\\.]+)+\\.(txt)";
+                        String xlsfiletype = "(?:[\\w]\\:|\\\\)(\\\\[a-zA-Z_\\-\\s0-9\\.]+)+\\.(xls|xlsx)";
+                        String docfiletype = "(?:[\\w]\\:|\\\\)(\\\\[a-zA-Z_\\-\\s0-9\\.]+)+\\.(doc|docx)";
+                        String dptfiletype = "(?:[\\w]\\:|\\\\)(\\\\[a-zA-Z_\\-\\s0-9\\.]+)+\\.(dpt)";
+
+                        Pattern fileExtPatternCVS = Pattern.compile(cvsfiletype);
+                        Pattern fileExtPatternTXT = Pattern.compile(txtfiletype);
+                        Pattern fileExtPatternXLS = Pattern.compile(xlsfiletype);
+                        Pattern fileExtPatternDOC = Pattern.compile(docfiletype);
+                        Pattern fileExtPatternDPT = Pattern.compile(dptfiletype);
+
+                        Matcher mtch1 = fileExtPatternCVS.matcher(fileName);
+                        Matcher mtch2 = fileExtPatternTXT.matcher(fileName);
+                        Matcher mtch3 = fileExtPatternXLS.matcher(fileName);
+                        Matcher mtch4 = fileExtPatternDOC.matcher(fileName);
+                        Matcher mtch5 = fileExtPatternDPT.matcher(fileName);
+
+                        //if the file is CVS
+                        if (mtch1.matches()) {
+                            value = line.split(","); //if the file is CVS
+                        } //if the file is text
+                        else if (mtch2.matches()) {
+                            value = line.split("\\s+"); //whitespace regex 
+                        } else if (mtch3.matches()) {
+                            value = line.split(","); //whitespace regex 
+                        }
+
 //                   
-
-                    String sql = "insert into input_data (WAVENUMBER , TRANSMITTANCE)" + "values ('" + value[0] + "','" + value[1] + "')";
-                    pst = conn.prepareStatement(sql);
-                    pst.executeUpdate();
+                        String sql = "insert into input_data (WAVENUMBER , TRANSMITTANCE)" + "values ('" + value[0] + "','" + value[1] + "')";
+                        pst = conn.prepareStatement(sql);
+                        pst.executeUpdate();
+                    }
                 }
-            }
-            br.close();
+                br.close();
 
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, e);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, e);
+            }
+
+            update_table();
+
+        } else {
+
+            JOptionPane.showMessageDialog(null, "Invalid file format!", "Error", JOptionPane.ERROR_MESSAGE);
+
         }
 
-        update_table();
     }//GEN-LAST:event_uploadButtonActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-//        vaidateInputData();
-        validateFileType();
+        vaidateInputData();
+//        validateFileType();
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void clearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearButtonActionPerformed
@@ -346,7 +358,6 @@ public class FtirInterpreter extends javax.swing.JFrame {
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
-    private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JTextField jTextField1;
@@ -388,11 +399,23 @@ public class FtirInterpreter extends javax.swing.JFrame {
             ChartFrame frame = new ChartFrame("Spectrum", spec);
             frame.setVisible(true);
             frame.setSize(1000, 600);
+            
+//            ChartPanel cp = new ChartPanel(spec);
+//            cp.setChart(spec);
+//            cp.setVisible(true);
+//            cp.setDomainZoomable(true);
+//            
+//            JPanel specPanel = new JPanel();
+//            specPanel.setLayout(new BorderLayout());
+//            specPanel.add(cp, BorderLayout.LINE_END);
+//            
+//            specPanel.validate();
+//            specPanel.setVisible(true);
+////            
+//            cp.setVisible(true);
+//            specPanel.updateUI();
 
-//            // set the range axis to display integers only...
-//            final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
-//            rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-        } catch (Exception e) {
+     } catch (Exception e) {
             JOptionPane.showMessageDialog(null, e);
         }
     }
@@ -446,10 +469,12 @@ public class FtirInterpreter extends javax.swing.JFrame {
 
         Matcher regrexMatch = null;
 //        String point = "\\d{3,4}\\.\\d{6}\\s\\d{1,2}\\.\\d{6}\\s"; //[0-9]{3,4}\\.[0-9]{6}\\s[0-9]{1,2}\\.[0-9]{6}
-        String point = "\\d{3,4}\\.\\d{6}[ \\t]\\d{1,2}\\.\\d{6}\\s"; //trying for DPT file works for txt as well
+//        String point = "\\d{3,4}\\.\\d{5,6}[ \\t]\\d{1,2}\\.\\d{5,6}[ \\t]"; 
 //        String point = "(?(#)##YUNITS=%T|\\d{3,4}\\.\\d{6}[ \\t]\\d{1,2}\\.\\d{6}\\s))";
-
-        int invalid_input = 0;
+//        String point = "\\d{3,4}\\.\\d{5,6}[ \\t]\\d{1,2}\\.\\d{5,6}[ \\t]*"; //for DPT,txt as well
+        String point = "\\d{3,4}\\.\\d{5,6}(\\,|[ \\t])\\d{1,2}\\.\\d{5,6}(\\,|[ \\t]*)"; //working for DPT,txt,cvs
+        
+        int invalid_input = -1; //skip the first line ##YUNITS=%T
         int valid_input = 0;
         int lineNumber = 0;
 
@@ -460,7 +485,7 @@ public class FtirInterpreter extends javax.swing.JFrame {
 
                 Pattern input_pattern = Pattern.compile(point);
                 regrexMatch = input_pattern.matcher(line);
-//                System.out.println("aaa"+line+"aaa");
+                System.out.println("aaa" + line + "aaa");
                 System.out.println(line);
                 boolean m = regrexMatch.matches();
                 System.out.println(m);
@@ -488,7 +513,8 @@ public class FtirInterpreter extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(null, "Data format error!", "Error", JOptionPane.ERROR_MESSAGE);
 
             } else {
-                JOptionPane.showMessageDialog(null, "Data format is correct!");
+//                JOptionPane.showMessageDialog(null, "Data format is correct!");
+                System.out.println("Data format is correct!");
             }
 
         } catch (Exception e) {
@@ -497,7 +523,7 @@ public class FtirInterpreter extends javax.swing.JFrame {
 
     }
 
-    private void validateFileType() {
+    private boolean validateFileType() {
 
         String filetype = "(?:[\\w]\\:|\\\\)(\\\\[a-zA-Z_\\-\\s0-9\\.]+)+\\.(txt|csv|dpt|doc|docx|xls|xlsx)";
         Pattern fileExtPattern = Pattern.compile(filetype);
@@ -505,13 +531,14 @@ public class FtirInterpreter extends javax.swing.JFrame {
         Matcher mtch = fileExtPattern.matcher(fileName);
         if (mtch.matches()) {
 
-            JOptionPane.showMessageDialog(null, "Vaild file format.");
+//            JOptionPane.showMessageDialog(null, "Vaild file format.");
             System.out.println(fileName);
             System.out.print(mtch.matches());
+            return true;
 
         } else {
-            JOptionPane.showMessageDialog(null, "Invalid file format!", "Error", JOptionPane.ERROR_MESSAGE);
-
+//            JOptionPane.showMessageDialog(null, "Invalid file format!", "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
         }
     }
 
