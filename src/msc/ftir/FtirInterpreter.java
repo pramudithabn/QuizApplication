@@ -1,5 +1,6 @@
 package msc.ftir;
 
+import java.awt.BorderLayout;
 import net.proteanit.sql.DbUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -20,6 +21,7 @@ import org.jfree.data.jdbc.JDBCCategoryDataset;
 import java.util.*;
 import java.util.regex.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import org.jfree.chart.ChartPanel;
 
 
 /*
@@ -58,16 +60,16 @@ public class FtirInterpreter extends javax.swing.JFrame {
     private void initComponents() {
 
         jDialog1 = new javax.swing.JDialog();
-        button1 = new javax.swing.JButton();
-        jTextField1 = new javax.swing.JTextField();
-        jToolBar1 = new javax.swing.JToolBar();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        dataTable = new javax.swing.JTable();
-        uploadButton = new javax.swing.JButton();
-        button_specgen = new javax.swing.JButton();
-        clearButton = new javax.swing.JButton();
         specPanel = new javax.swing.JPanel();
         jButton1 = new javax.swing.JButton();
+        jTextField1 = new javax.swing.JTextField();
+        button1 = new javax.swing.JButton();
+        uploadButton = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        dataTable = new javax.swing.JTable();
+        jPanel1 = new javax.swing.JPanel();
+        clearButton = new javax.swing.JButton();
+        button_specgen = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
@@ -88,14 +90,32 @@ public class FtirInterpreter extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
+        specPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jButton1.setText("Validate");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+        specPanel.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(440, 20, 80, -1));
+        specPanel.add(jTextField1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 20, 326, -1));
+
         button1.setText("...");
         button1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 button1ActionPerformed(evt);
             }
         });
+        specPanel.add(button1, new org.netbeans.lib.awtextra.AbsoluteConstraints(330, 20, 20, 20));
 
-        jToolBar1.setRollover(true);
+        uploadButton.setText("Upload");
+        uploadButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                uploadButtonActionPerformed(evt);
+            }
+        });
+        specPanel.add(uploadButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(360, 20, 80, -1));
 
         dataTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -110,19 +130,22 @@ public class FtirInterpreter extends javax.swing.JFrame {
         ));
         jScrollPane1.setViewportView(dataTable);
 
-        uploadButton.setText("Upload");
-        uploadButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                uploadButtonActionPerformed(evt);
-            }
-        });
+        specPanel.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 100, 305, 435));
 
-        button_specgen.setText("Generate Spectrum");
-        button_specgen.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                button_specgenActionPerformed(evt);
-            }
-        });
+        jPanel1.setBackground(new java.awt.Color(28, 67, 130));
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 360, Short.MAX_VALUE)
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+
+        specPanel.add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 130, -1, 80));
 
         clearButton.setText("Clear");
         clearButton.addActionListener(new java.awt.event.ActionListener() {
@@ -130,30 +153,15 @@ public class FtirInterpreter extends javax.swing.JFrame {
                 clearButtonActionPerformed(evt);
             }
         });
+        specPanel.add(clearButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(360, 50, 80, -1));
 
-        jButton1.setText("Validate");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        button_specgen.setText("Generate Spectrum");
+        button_specgen.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                button_specgenActionPerformed(evt);
             }
         });
-
-        javax.swing.GroupLayout specPanelLayout = new javax.swing.GroupLayout(specPanel);
-        specPanel.setLayout(specPanelLayout);
-        specPanelLayout.setHorizontalGroup(
-            specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(specPanelLayout.createSequentialGroup()
-                .addGap(69, 69, 69)
-                .addComponent(jButton1)
-                .addContainerGap(370, Short.MAX_VALUE))
-        );
-        specPanelLayout.setVerticalGroup(
-            specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(specPanelLayout.createSequentialGroup()
-                .addGap(60, 60, 60)
-                .addComponent(jButton1)
-                .addContainerGap(246, Short.MAX_VALUE))
-        );
+        specPanel.add(button_specgen, new org.netbeans.lib.awtextra.AbsoluteConstraints(520, 20, -1, -1));
 
         jMenu1.setText("File");
 
@@ -187,45 +195,13 @@ public class FtirInterpreter extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(uploadButton)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                            .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 326, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(button1))
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 305, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(button_specgen)
-                            .addComponent(clearButton))))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(specPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+                .addComponent(specPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 696, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(button1)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(uploadButton)
-                .addGap(23, 23, 23)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(specPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 30, Short.MAX_VALUE))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(button_specgen)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(clearButton)
-                .addContainerGap())
+            .addComponent(specPanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 576, Short.MAX_VALUE)
         );
 
         pack();
@@ -255,20 +231,59 @@ public class FtirInterpreter extends javax.swing.JFrame {
 
     private void uploadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadButtonActionPerformed
 
+        vaidateInputData();
         try {
 
             System.out.println(fileName);
             BufferedReader br = new BufferedReader(new FileReader(fileName));
             String line;
+            String[] value = null;
 
             while ((line = br.readLine()) != null) {
 
-                String[] value = line.split("\\s+"); //whitespace regex 
-//              String[] value = line.split(","); //if the file is CVS 
+                //Make sure the line is not null, not empty, and contains data format
+                if (!line.equals("") && line.matches("\\d{3,4}\\.\\d{6}[ \\t]\\d{1,2}\\.\\d{6}\\s")) {
+                    
+                    
+                    String cvsfiletype = "(?:[\\w]\\:|\\\\)(\\\\[a-zA-Z_\\-\\s0-9\\.]+)+\\.(csv)";
+                    String txtfiletype = "(?:[\\w]\\:|\\\\)(\\\\[a-zA-Z_\\-\\s0-9\\.]+)+\\.(txt)";
+                    String xlsfiletype = "(?:[\\w]\\:|\\\\)(\\\\[a-zA-Z_\\-\\s0-9\\.]+)+\\.(xls|xlsx)";
+                    String docfiletype = "(?:[\\w]\\:|\\\\)(\\\\[a-zA-Z_\\-\\s0-9\\.]+)+\\.(doc|docx)";
+                    String dptfiletype = "(?:[\\w]\\:|\\\\)(\\\\[a-zA-Z_\\-\\s0-9\\.]+)+\\.(dpt)";
+        
+                    Pattern fileExtPatternCVS = Pattern.compile(cvsfiletype);
+                    Pattern fileExtPatternTXT = Pattern.compile(txtfiletype);
+                    Pattern fileExtPatternXLS = Pattern.compile(xlsfiletype);
+                    Pattern fileExtPatternDOC = Pattern.compile(docfiletype);
+                    Pattern fileExtPatternDPT = Pattern.compile(dptfiletype);
 
-                String sql = "insert into input_data (WAVENUMBER , TRANSMITTANCE)" + "values ('" + value[0] + "','" + value[1] + "')";
-                pst = conn.prepareStatement(sql);
-                pst.executeUpdate();
+                    Matcher mtch1 = fileExtPatternCVS.matcher(fileName);
+                    Matcher mtch2 = fileExtPatternTXT.matcher(fileName);
+                    Matcher mtch3 = fileExtPatternXLS.matcher(fileName);
+                    Matcher mtch4 = fileExtPatternDOC.matcher(fileName);
+                    Matcher mtch5 = fileExtPatternDPT.matcher(fileName);
+                    
+        
+                    
+                    //if the file is CVS
+                    if(mtch1.matches()){
+                        value = line.split(","); //if the file is CVS
+                    }
+                    //if the file is text
+                    else if(mtch2.matches()){
+                        value = line.split("\\s+"); //whitespace regex 
+                    }
+                    else if(mtch3.matches()){
+                        value = line.split(","); //whitespace regex 
+                    }
+                    
+                    
+//                   
+
+                    String sql = "insert into input_data (WAVENUMBER , TRANSMITTANCE)" + "values ('" + value[0] + "','" + value[1] + "')";
+                    pst = conn.prepareStatement(sql);
+                    pst.executeUpdate();
+                }
             }
             br.close();
 
@@ -279,12 +294,10 @@ public class FtirInterpreter extends javax.swing.JFrame {
         update_table();
     }//GEN-LAST:event_uploadButtonActionPerformed
 
-    private void button_specgenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_specgenActionPerformed
-        // TODO add your handling code here:
-
-        generate_spectrum();
-
-    }//GEN-LAST:event_button_specgenActionPerformed
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+//        vaidateInputData();
+        validateFileType();
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     private void clearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearButtonActionPerformed
         int p = JOptionPane.showConfirmDialog(null, "Are you sure you want to clear data?", "Delete Confirmation", JOptionPane.YES_NO_OPTION);
@@ -303,10 +316,11 @@ public class FtirInterpreter extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_clearButtonActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-//        vaidateInputData();
-        validateFileType();
-    }//GEN-LAST:event_jButton1ActionPerformed
+    private void button_specgenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_specgenActionPerformed
+        // TODO add your handling code here:
+
+        generate_spectrum();
+    }//GEN-LAST:event_button_specgenActionPerformed
 
     /**
      * @param args the command line arguments
@@ -332,10 +346,10 @@ public class FtirInterpreter extends javax.swing.JFrame {
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JTextField jTextField1;
-    private javax.swing.JToolBar jToolBar1;
     private javax.swing.JPanel specPanel;
     private javax.swing.JButton uploadButton;
     // End of variables declaration//GEN-END:variables
@@ -373,7 +387,7 @@ public class FtirInterpreter extends javax.swing.JFrame {
             renderer = new BarRenderer();
             ChartFrame frame = new ChartFrame("Spectrum", spec);
             frame.setVisible(true);
-            frame.setSize(400, 650);
+            frame.setSize(1000, 600);
 
 //            // set the range axis to display integers only...
 //            final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
@@ -412,7 +426,7 @@ public class FtirInterpreter extends javax.swing.JFrame {
         }
 
     }
-    
+
     private void fileChooser() {
 //       FileNameExtensionFilter filter = new FileNameExtensionFilter("txt", "xlsx", "dpt", "csv");
         JFileChooser chooser = new JFileChooser();
@@ -522,7 +536,5 @@ public class FtirInterpreter extends javax.swing.JFrame {
         }
         System.out.println("Stored data in temporary file.");
     }
-
-    
 
 }
