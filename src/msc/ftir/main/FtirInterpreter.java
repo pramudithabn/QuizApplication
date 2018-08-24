@@ -1,25 +1,28 @@
 package msc.ftir.main;
 
 import java.awt.Toolkit;
+import java.awt.font.TextAttribute;
 import net.proteanit.sql.DbUtils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
+import static java.lang.System.out;
 import javax.swing.JFileChooser;
 import java.sql.*;
+import java.text.AttributedString;
 import javax.swing.*;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartFrame;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.BarRenderer;
-import org.jfree.data.jdbc.JDBCCategoryDataset;
 import java.util.*;
 import java.util.regex.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.UIManager;
-
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.data.jdbc.JDBCXYDataset;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -283,9 +286,12 @@ public class FtirInterpreter extends javax.swing.JFrame {
     }//GEN-LAST:event_clearButtonActionPerformed
 
     private void button_specgenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_specgenActionPerformed
-        // TODO add your handling code here:
 
-        generate_spectrum();
+       
+                    generate_spectrum();
+//            createSpectrum();
+    
+
     }//GEN-LAST:event_button_specgenActionPerformed
 
     /**
@@ -343,31 +349,29 @@ public class FtirInterpreter extends javax.swing.JFrame {
 
     private void generate_spectrum() {
         try {
-
+            
+//            AttributedString wn = new AttributedString("Wavenumber (cm-1)");
+//            wn.addAttribute(TextAttribute.SUPERSCRIPT, TextAttribute.SUPERSCRIPT_SUPER, 15, 16);
+//            System.out.println(wn);
+            
             String query1 = "select WAVENUMBER, TRANSMITTANCE from input_data";
-            JDBCCategoryDataset dataset = new JDBCCategoryDataset(Javaconnect.ConnecrDb(), query1);
-            JFreeChart spec = ChartFactory.createLineChart("FTIR Spectrum", "Wavenumber", "Transmittance %", dataset, PlotOrientation.VERTICAL, false, true, true);
+            JDBCXYDataset dataset = new JDBCXYDataset(Javaconnect.ConnecrDb(), query1);
+            JFreeChart spec = ChartFactory.createXYLineChart("FTIR Spectrum", "Wavenumber (cm-1)", "Transmittance %", dataset, PlotOrientation.VERTICAL, false, true, true);
             BarRenderer renderer = null;
-            CategoryPlot plot = null;
+            XYPlot plot = spec.getXYPlot();
+            NumberAxis range =  (NumberAxis) plot.getRangeAxis();
+            range.setAutoRange(true);
             renderer = new BarRenderer();
             ChartFrame frame = new ChartFrame("Spectrum", spec);
             frame.setVisible(true);
             frame.setSize(1000, 600);
+            
+            NumberAxis domain =  (NumberAxis) plot.getDomainAxis();
+            domain.setRange(400.000000, 4000.000000);
+            domain.setInverted(true);
+            
 
-//            ChartPanel cp = new ChartPanel(spec);
-//            cp.setChart(spec);
-//            cp.setVisible(true);
-//            cp.setDomainZoomable(true);
-//            
-//            JPanel specPanel = new JPanel();
-//            specPanel.setLayout(new BorderLayout());
-//            specPanel.add(cp, BorderLayout.LINE_END);
-//            
-//            specPanel.validate();
-//            specPanel.setVisible(true);
-////            
-//            cp.setVisible(true);
-//            specPanel.updateUI();
+
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, e);
         }
@@ -526,5 +530,7 @@ public class FtirInterpreter extends javax.swing.JFrame {
         }
 
     }
+
+
 
 }
