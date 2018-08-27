@@ -1,25 +1,26 @@
 package msc.ftir.main;
 
+import static com.sun.javafx.binding.StringFormatter.convert;
+import java.awt.BorderLayout;
 import java.awt.Toolkit;
-import java.awt.font.TextAttribute;
 import net.proteanit.sql.DbUtils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
-import static java.lang.System.out;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import javax.swing.JFileChooser;
 import java.sql.*;
-import java.text.AttributedString;
+import java.text.DecimalFormat;
 import javax.swing.*;
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartFrame;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.BarRenderer;
 import java.util.*;
 import java.util.regex.*;
 import javax.swing.UIManager;
+import org.jfree.chart.ChartPanel;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.jdbc.JDBCXYDataset;
@@ -33,7 +34,7 @@ import org.jfree.data.jdbc.JDBCXYDataset;
  *
  * @author Pramuditha Buddhini
  */
-public class FtirInterpreter extends javax.swing.JFrame {
+public class FTIRDescktopApp extends javax.swing.JFrame {
 
     Connection conn = null;
     ResultSet rs = null;
@@ -41,11 +42,15 @@ public class FtirInterpreter extends javax.swing.JFrame {
     private String fileName;
     ArrayList<Integer> errorLine = new ArrayList<>();
     boolean dataformatvalidity;
+    private Object[][] dataArray = new Object[1000][2];
+//    private double[] wavArray = new double[1000];
+//    private double[] transArray = new double[1000];
+//    String[] stringArray = Arrays.copyOf(dataArray, dataArray.length, String[].class);
 
     /**
      * Creates new form HelloWorld
      */
-    public FtirInterpreter() {
+    public FTIRDescktopApp() {
 
 //        this.setUndecorated(false);
 //        this.setAlwaysOnTop(true);
@@ -83,20 +88,29 @@ public class FtirInterpreter extends javax.swing.JFrame {
 
         jDialog1 = new javax.swing.JDialog();
         specPanel = new javax.swing.JPanel();
-        jButton1 = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        dataTable = new javax.swing.JTable();
         jTextField1 = new javax.swing.JTextField();
         fileBrowserButton = new javax.swing.JButton();
         uploadButton = new javax.swing.JButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        dataTable = new javax.swing.JTable();
+        jLabel1 = new javax.swing.JLabel();
         clearButton = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
         button_specgen = new javax.swing.JButton();
+        jPanel1 = new javax.swing.JPanel();
+        jPanel2 = new javax.swing.JPanel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
         jSeparator1 = new javax.swing.JPopupMenu.Separator();
         jMenuItem2 = new javax.swing.JMenuItem();
+        jMenuItem3 = new javax.swing.JMenuItem();
+        jMenuItem4 = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
+        jMenu3 = new javax.swing.JMenu();
+        jMenu4 = new javax.swing.JMenu();
+        jMenu5 = new javax.swing.JMenu();
+        jMenu6 = new javax.swing.JMenu();
 
         javax.swing.GroupLayout jDialog1Layout = new javax.swing.GroupLayout(jDialog1.getContentPane());
         jDialog1.getContentPane().setLayout(jDialog1Layout);
@@ -111,32 +125,7 @@ public class FtirInterpreter extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        specPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        jButton1.setText("Validate");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-        specPanel.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(440, 20, 80, -1));
-        specPanel.add(jTextField1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 20, 326, -1));
-
-        fileBrowserButton.setText("...");
-        fileBrowserButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                fileBrowserButtonActionPerformed(evt);
-            }
-        });
-        specPanel.add(fileBrowserButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(330, 20, 20, 20));
-
-        uploadButton.setText("Upload");
-        uploadButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                uploadButtonActionPerformed(evt);
-            }
-        });
-        specPanel.add(uploadButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(360, 20, 80, -1));
+        specPanel.setBackground(new java.awt.Color(20, 27, 32));
 
         dataTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -151,7 +140,24 @@ public class FtirInterpreter extends javax.swing.JFrame {
         ));
         jScrollPane1.setViewportView(dataTable);
 
-        specPanel.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 100, 305, 440));
+        fileBrowserButton.setText("...");
+        fileBrowserButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                fileBrowserButtonActionPerformed(evt);
+            }
+        });
+
+        uploadButton.setText("Upload");
+        uploadButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                uploadButtonActionPerformed(evt);
+            }
+        });
+
+        jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabel1.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel1.setIcon(new javax.swing.ImageIcon("D:\\Images\\icons8_Data_Sheet_26px.png")); // NOI18N
+        jLabel1.setText("Data");
 
         clearButton.setText("Clear");
         clearButton.addActionListener(new java.awt.event.ActionListener() {
@@ -159,15 +165,102 @@ public class FtirInterpreter extends javax.swing.JFrame {
                 clearButtonActionPerformed(evt);
             }
         });
-        specPanel.add(clearButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(360, 50, 80, -1));
 
-        button_specgen.setText("Generate Spectrum");
+        jButton1.setText("Pick");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        button_specgen.setText("View Spectrum");
         button_specgen.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 button_specgenActionPerformed(evt);
             }
         });
-        specPanel.add(button_specgen, new org.netbeans.lib.awtextra.AbsoluteConstraints(520, 20, -1, -1));
+
+        javax.swing.GroupLayout specPanelLayout = new javax.swing.GroupLayout(specPanel);
+        specPanel.setLayout(specPanelLayout);
+        specPanelLayout.setHorizontalGroup(
+            specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(specPanelLayout.createSequentialGroup()
+                .addGroup(specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addGroup(specPanelLayout.createSequentialGroup()
+                            .addContainerGap()
+                            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addGap(18, 18, 18)
+                            .addComponent(clearButton, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(specPanelLayout.createSequentialGroup()
+                            .addGap(330, 330, 330)
+                            .addComponent(uploadButton, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(specPanelLayout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addGroup(specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(specPanelLayout.createSequentialGroup()
+                                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 410, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(10, 10, 10)
+                                .addComponent(fileBrowserButton, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(specPanelLayout.createSequentialGroup()
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 305, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(15, 15, 15)
+                                .addGroup(specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(button_specgen, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE))))))
+                .addContainerGap(35, Short.MAX_VALUE))
+        );
+        specPanelLayout.setVerticalGroup(
+            specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(specPanelLayout.createSequentialGroup()
+                .addGap(10, 10, 10)
+                .addGroup(specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(fileBrowserButton, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(10, 10, 10)
+                .addComponent(uploadButton)
+                .addGroup(specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(specPanelLayout.createSequentialGroup()
+                        .addGap(12, 12, 12)
+                        .addComponent(jLabel1))
+                    .addGroup(specPanelLayout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(clearButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton1)))
+                .addGroup(specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 440, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(specPanelLayout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(button_specgen)))
+                .addContainerGap(13, Short.MAX_VALUE))
+        );
+
+        jPanel1.setBackground(new java.awt.Color(53, 62, 74));
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 391, Short.MAX_VALUE)
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 285, Short.MAX_VALUE)
+        );
+
+        jPanel2.setBackground(new java.awt.Color(20, 27, 32));
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
 
         jMenu1.setText("File");
 
@@ -190,10 +283,40 @@ public class FtirInterpreter extends javax.swing.JFrame {
         });
         jMenu1.add(jMenuItem2);
 
+        jMenuItem3.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem3.setText("Save");
+        jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem3ActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItem3);
+
+        jMenuItem4.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem4.setText("Print");
+        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem4ActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItem4);
+
         jMenuBar1.add(jMenu1);
 
         jMenu2.setText("Edit");
         jMenuBar1.add(jMenu2);
+
+        jMenu3.setText("Display");
+        jMenuBar1.add(jMenu3);
+
+        jMenu4.setText("Options");
+        jMenuBar1.add(jMenu4);
+
+        jMenu5.setText("Tools");
+        jMenuBar1.add(jMenu5);
+
+        jMenu6.setText("Help");
+        jMenuBar1.add(jMenu6);
 
         setJMenuBar(jMenuBar1);
 
@@ -201,11 +324,20 @@ public class FtirInterpreter extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(specPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(specPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(specPanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 739, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addComponent(specPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         pack();
@@ -264,8 +396,11 @@ public class FtirInterpreter extends javax.swing.JFrame {
     }//GEN-LAST:event_uploadButtonActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        vaidateDataFormat();
+//        vaidateDataFormat();
 //        validateFileType();
+//        arrayFill();
+        calDerivatives();
+
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void clearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearButtonActionPerformed
@@ -287,12 +422,19 @@ public class FtirInterpreter extends javax.swing.JFrame {
 
     private void button_specgenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_specgenActionPerformed
 
-       
-                    generate_spectrum();
+        generate_spectrum();
 //            createSpectrum();
-    
+
 
     }//GEN-LAST:event_button_specgenActionPerformed
+
+    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jMenuItem3ActionPerformed
+
+    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jMenuItem4ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -301,7 +443,7 @@ public class FtirInterpreter extends javax.swing.JFrame {
 
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new FtirInterpreter().setVisible(true);
+                new FTIRDescktopApp().setVisible(true);
             }
         });
     }
@@ -309,15 +451,24 @@ public class FtirInterpreter extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton button_specgen;
     private javax.swing.JButton clearButton;
-    private javax.swing.JTable dataTable;
+    public javax.swing.JTable dataTable;
     private javax.swing.JButton fileBrowserButton;
     private javax.swing.JButton jButton1;
     private javax.swing.JDialog jDialog1;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
+    private javax.swing.JMenu jMenu3;
+    private javax.swing.JMenu jMenu4;
+    private javax.swing.JMenu jMenu5;
+    private javax.swing.JMenu jMenu6;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
+    private javax.swing.JMenuItem jMenuItem3;
+    private javax.swing.JMenuItem jMenuItem4;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JTextField jTextField1;
@@ -349,28 +500,36 @@ public class FtirInterpreter extends javax.swing.JFrame {
 
     private void generate_spectrum() {
         try {
-            
+
 //            AttributedString wn = new AttributedString("Wavenumber (cm-1)");
 //            wn.addAttribute(TextAttribute.SUPERSCRIPT, TextAttribute.SUPERSCRIPT_SUPER, 15, 16);
 //            System.out.println(wn);
-            
             String query1 = "select WAVENUMBER, TRANSMITTANCE from input_data";
             JDBCXYDataset dataset = new JDBCXYDataset(Javaconnect.ConnecrDb(), query1);
             JFreeChart spec = ChartFactory.createXYLineChart("FTIR Spectrum", "Wavenumber (cm-1)", "Transmittance %", dataset, PlotOrientation.VERTICAL, false, true, true);
+
+            ChartPanel chartPanel = new ChartPanel(spec);
+            chartPanel.setDomainZoomable(true);
+
+            JPanel jPanel = new JPanel();
+            jPanel.setLayout(new BorderLayout());
+            jPanel.add(chartPanel, BorderLayout.CENTER);
+
             BarRenderer renderer = null;
             XYPlot plot = spec.getXYPlot();
-            NumberAxis range =  (NumberAxis) plot.getRangeAxis();
+            NumberAxis range = (NumberAxis) plot.getRangeAxis();
             range.setAutoRange(true);
             renderer = new BarRenderer();
-            ChartFrame frame = new ChartFrame("Spectrum", spec);
+            JFrame frame = new JFrame();
+            frame.add(jPanel);
             frame.setVisible(true);
             frame.setSize(1000, 600);
-            
-            NumberAxis domain =  (NumberAxis) plot.getDomainAxis();
-            domain.setRange(400.000000, 4000.000000);
-            domain.setInverted(true);
-            
+            frame.pack();
 
+            NumberAxis domain = (NumberAxis) plot.getDomainAxis();
+//            domain.setRange(400.000000, 4000.000000);
+            domain.setAutoRange(true);
+            domain.setInverted(true);
 
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, e);
@@ -531,6 +690,87 @@ public class FtirInterpreter extends javax.swing.JFrame {
 
     }
 
+    public void arrayFill() {
 
+        int row = dataTable.getRowCount();
+        int col = dataTable.getColumnCount();
 
+        for (int i = 0; i < dataTable.getRowCount(); i++) {
+
+            for (int j = 0; j < dataTable.getColumnCount(); j++) {//y = f(x) values
+
+                dataArray[i][j] = dataTable.getModel().getValueAt(i, j);
+//                System.out.println(dataTable.getValueAt(i, j));
+//                System.out.println(dataArray[i][j]);
+
+                System.out.println(dataArray.getClass().toString());
+
+            }
+
+        }
+
+    }
+
+    public void calDerivatives() {
+        long[] dArray = new long[dataTable.getRowCount()];
+//        double[] arrDouble = new double[stringArray.length];
+//
+//        for(int i=0; i<stringArray.length; i++)
+//        {
+////            arrDouble[i] = convert.ToDouble(stringArray[i]);
+//        }
+        for (int i = 1; i < dataTable.getRowCount(); i++) {
+
+            if (i == dataTable.getRowCount()) {
+                break;
+            }
+
+            double derivative;
+
+            double y1 = (double) dataTable.getModel().getValueAt(i + 1, 1);
+            double y2 = (double) dataTable.getModel().getValueAt(i - 1, 1);
+            double x1 = (double) dataTable.getModel().getValueAt(i + 1, 0);
+            double x2 = (double) dataTable.getModel().getValueAt(i - 1, 0);
+
+            derivative = ((y1 - y2) / (x1 - x2)) * 10000;
+
+//            DecimalFormat df = new DecimalFormat("#.####");
+//
+//            String d = df.format(derivative);
+//            
+            long d = Math.round(derivative);
+
+            System.out.println("At x = " + dataTable.getModel().getValueAt(i, 0) + " f'(x) = " + d);
+
+            dArray[i] = d;
+            
+            
+
+        }
+        
+        for (int k = 0; k < dArray.length; k++) {
+            System.out.print(dArray[k]+",");
+        }
+        
+//        ArrayList a = new ArrayList();
+//        a = locateDownwardSpickes(dArray);
+//
+//        for (int k = 0; k < a.size(); k++) {
+//            System.out.println(a.get(k));
+//        }
+
+    }
+
+    public ArrayList locateDownwardSpickes(long arr[]) {
+
+        ArrayList spikeindex = new ArrayList();
+        for (int i = 0; i < arr.length; i++) {
+
+            if (arr[i] == 0 && arr[i - 1] < 0 && arr[i + 1] > 0) {
+                spikeindex.add(i);
+            }
+
+        }
+        return spikeindex;
+    }
 }
