@@ -1,4 +1,7 @@
+package main;
 
+
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 
@@ -22,6 +25,7 @@ public class Home extends javax.swing.JFrame {
         initComponents();
         setSize(500, 500);
         setLocationRelativeTo(null);
+        setBackground(Color.yellow);
         
     }
 
@@ -38,16 +42,17 @@ public class Home extends javax.swing.JFrame {
         startButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setBackground(new java.awt.Color(0, 0, 0));
         setMinimumSize(new java.awt.Dimension(500, 500));
         setName("Quiz"); // NOI18N
         getContentPane().setLayout(null);
 
         jLabel1.setFont(new java.awt.Font("Tekton Pro", 1, 48)); // NOI18N
-        jLabel1.setText("QUIZ");
+        jLabel1.setIcon(new javax.swing.ImageIcon("D:\\Images\\logo1.png")); // NOI18N
         getContentPane().add(jLabel1);
-        jLabel1.setBounds(190, 110, 100, 120);
+        jLabel1.setBounds(140, 90, 230, 230);
 
-        startButton.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        startButton.setFont(new java.awt.Font("Tekton Pro", 1, 24)); // NOI18N
         startButton.setText("Start!");
         startButton.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
         startButton.addActionListener(new java.awt.event.ActionListener() {
@@ -56,7 +61,7 @@ public class Home extends javax.swing.JFrame {
             }
         });
         getContentPane().add(startButton);
-        startButton.setBounds(170, 230, 140, 70);
+        startButton.setBounds(160, 330, 140, 70);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents

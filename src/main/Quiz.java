@@ -1,3 +1,5 @@
+package main;
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -104,7 +106,7 @@ public class Quiz extends JFrame {
 
     public void showSummary() {
         
-        ImageIcon icon3 = new ImageIcon("D:\\Images\\result.png");
+        ImageIcon icon3 = new ImageIcon("D:\\Images\\award1.png");
         JOptionPane.showMessageDialog(null, "Results"
                 + "\nIncorrect Answers: \t" + wrongs
                 + "\nCorrect Answers  : \t" + (total - wrongs)
