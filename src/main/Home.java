@@ -50,7 +50,7 @@ public class Home extends javax.swing.JFrame {
         jLabel1.setFont(new java.awt.Font("Tekton Pro", 1, 48)); // NOI18N
         jLabel1.setIcon(new javax.swing.ImageIcon("D:\\Images\\logo1.png")); // NOI18N
         getContentPane().add(jLabel1);
-        jLabel1.setBounds(140, 90, 230, 230);
+        jLabel1.setBounds(150, 60, 230, 230);
 
         startButton.setFont(new java.awt.Font("Tekton Pro", 1, 24)); // NOI18N
         startButton.setText("Start!");
@@ -61,7 +61,7 @@ public class Home extends javax.swing.JFrame {
             }
         });
         getContentPane().add(startButton);
-        startButton.setBounds(160, 330, 140, 70);
+        startButton.setBounds(180, 310, 140, 70);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents

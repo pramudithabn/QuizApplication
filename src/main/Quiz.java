@@ -5,7 +5,6 @@ package main;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 /**
  *
  * @author Pramuditha Buddhini
@@ -13,8 +12,10 @@ package main;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import java.awt.CardLayout;
+import java.awt.Font;
 import java.util.Random;
 import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 public class Quiz extends JFrame {
@@ -23,16 +24,16 @@ public class Quiz extends JFrame {
     CardLayout cards = new CardLayout();
     int numQs;
     int wrongs = 0;
-    int corrects=0;
+    int corrects = 0;
     int total = 0;
-    int qnumber =0;
+    int qnumber = 0;
 
     String[][] answers = {
         {"RAM", "CPU", "Keyboard", "Mouse"},
         {"1TB", "1MB", "1000KB", "1GB"},
         {"Booktop", "Laptop", "Super computer", "CPU"},
         {"Yes", "No"},
-        {"Yahoo", "Bing","Google", "SOSO"}
+        {"Yahoo", "Bing", "Google", "SOSO"}
     };
 
     RadioQuestion questions[] = {
@@ -61,7 +62,6 @@ public class Quiz extends JFrame {
         answers[4],
         2, this
         )
-        
 
     };
 
@@ -105,12 +105,18 @@ public class Quiz extends JFrame {
     }
 
     public void showSummary() {
-        
-        ImageIcon icon3 = new ImageIcon("D:\\Images\\award1.png");
-        JOptionPane.showMessageDialog(null, "Results"
+
+        ImageIcon icon3 = new ImageIcon("src\\Images\\award1.png");
+//        ImageIcon icon3 = new ImageIcon("resources\\Images\\award1.png");
+        String s = "Results";
+        JLabel label = new JLabel(s);
+        label.setFont(new Font("serif", Font.PLAIN, 14));
+
+        JOptionPane.showMessageDialog(null, s
                 + "\nIncorrect Answers: \t" + wrongs
                 + "\nCorrect Answers  : \t" + (total - wrongs)
-                + "\nScore            : \t\t" + (int) (((float) (total - wrongs) / total) * 100) + "%"
+                + "\nScore            : \t\t" + (int) (((float) (total - wrongs) / total) * 100) + "%",
+                "Results", JOptionPane.INFORMATION_MESSAGE, icon3
         );
         System.exit(0);
     }

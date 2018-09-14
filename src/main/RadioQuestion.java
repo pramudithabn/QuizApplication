@@ -27,6 +27,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
+import sun.net.www.content.image.gif;
 
 public class RadioQuestion extends JPanel implements ActionListener {
 
@@ -46,6 +47,9 @@ public class RadioQuestion extends JPanel implements ActionListener {
     ButtonGroup group = new ButtonGroup();
 
     JPanel msgPanel = new JPanel();
+    ImageIcon gifImage = new ImageIcon("src\\Images\\c.gif");
+    JLabel gif = new JLabel(gifImage);
+    
 
     //bottom
     JPanel botPanel = new JPanel();
@@ -63,13 +67,15 @@ public class RadioQuestion extends JPanel implements ActionListener {
 
         JLabel title = new JLabel("Question ");
 
-        title.setFont(new Font("Tahoma", 1, 18));
+        title.setFont(new Font("Tahoma", 1, 20));
         header.add(title);
 //                header.setAlignmentX(RIGHT_ALIGNMENT);
+
+        add(gif,BorderLayout.LINE_END);
         add(header, BorderLayout.LINE_START);
 
         //question
-        ImageIcon icon3 = new ImageIcon("D:\\Images\\q.png");
+        ImageIcon icon3 = new ImageIcon("src\\Images\\q.png");
         JLabel qstn = new JLabel(q);
         qstn.setIcon(icon3);
         qPanel.add(qstn);
@@ -101,6 +107,7 @@ public class RadioQuestion extends JPanel implements ActionListener {
         add(botPanel);
 
         add(msgPanel);
+        
 
     }
 
@@ -154,11 +161,13 @@ public class RadioQuestion extends JPanel implements ActionListener {
 //        wrong.setForeground(Color.red);
         if (selected == correctAns) {
             quiz.corrects++;
-            ImageIcon icon1 = new ImageIcon("D:\\Images\\right.png");
+            ImageIcon icon1 = new ImageIcon("src\\Images\\right.png");
+//            ImageIcon icon1 = new ImageIcon(getClass().getClassLoader().getResource("resources\\Images\\right.png"));
+            
             JOptionPane.showMessageDialog(null, " Correct!", "Result", JOptionPane.INFORMATION_MESSAGE, icon1);
         } else {
             quiz.wrongs++;
-            ImageIcon icon2 = new ImageIcon("D:\\Images\\wrong.png");
+            ImageIcon icon2 = new ImageIcon("src\\Images\\wrong.png");
             JOptionPane.showMessageDialog(null, " Wrong", "Result", JOptionPane.INFORMATION_MESSAGE, icon2);
         }
         
