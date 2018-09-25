@@ -4,6 +4,7 @@ package main;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import static javafx.application.Platform.exit;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -42,6 +43,7 @@ public class Home extends javax.swing.JFrame {
         startButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Welcome!");
         setBackground(new java.awt.Color(0, 0, 0));
         setMinimumSize(new java.awt.Dimension(500, 500));
         setName("Quiz"); // NOI18N
@@ -67,9 +69,10 @@ public class Home extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void startButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startButtonActionPerformed
-       Quiz qs =  new Quiz();
+       QuizApplication qs =  new QuizApplication();
        qs.setVisible(true);
        qs.setLocationRelativeTo(null);
+       
        
     }//GEN-LAST:event_startButtonActionPerformed
 

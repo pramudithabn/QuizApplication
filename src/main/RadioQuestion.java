@@ -14,6 +14,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Image;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.ButtonGroup;
@@ -25,6 +26,12 @@ import javax.swing.JOptionPane;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
 import sun.net.www.content.image.gif;
@@ -37,6 +44,9 @@ public class RadioQuestion extends JPanel implements ActionListener {
     boolean used;
     //questions
     JPanel qPanel = new JPanel();
+    
+    //picture
+    JPanel picPanel =  new JPanel();
 
     JPanel header = new JPanel();
     int qnumber = 1;
@@ -56,7 +66,28 @@ public class RadioQuestion extends JPanel implements ActionListener {
     JButton next = new JButton("Next");
     JButton finish = new JButton("Finish");
 
-    public RadioQuestion(String q, String[] options, int ans, Quiz quiz) {
+    public RadioQuestion(String q, String[] options, int ans, byte[] p, Quiz quiz) {
+        
+       System.out.println("Question = "+q);
+       System.out.println("answer = "+ans);
+       System.out.println("SIZE  = "+options[0].length());
+       
+       
+       System.out.println("-------");
+       if(options!=null){
+       
+       for(int i=0;i<options.length;i++){
+           System.out.println("Options");
+       System.out.println(options[i] +",");
+       }
+       }
+       System.out.println("-------");
+     
+       if(p!=null){
+       System.out.println("pic not null");
+       }
+       else{System.out.print("Null");}
+        
         this.quiz = quiz;
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
@@ -65,7 +96,7 @@ public class RadioQuestion extends JPanel implements ActionListener {
         correctAns = ans;
 //        System.out.print(correctAns + " ");
 
-        JLabel title = new JLabel("Question ");
+        JLabel title = new JLabel("Questions");
 
         title.setFont(new Font("Tahoma", 1, 20));
         header.add(title);
@@ -84,6 +115,23 @@ public class RadioQuestion extends JPanel implements ActionListener {
         qPanel.setSize(500, 200);
         qPanel.setAlignmentX(RIGHT_ALIGNMENT);
         qPanel.setFont(new Font("Tahoma", Font.BOLD, 12));
+        
+        //pic
+        add(picPanel);
+               
+        ByteArrayInputStream pp = new ByteArrayInputStream(p);
+        BufferedImage image;
+        try {
+            image = ImageIO.read(pp);
+            JLabel piclabel = new JLabel(new ImageIcon(image));
+            picPanel.add(piclabel);
+        } catch (IOException ex) {
+            Logger.getLogger(RadioQuestion.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    
+  
+        
+        
         //answer
         responses = new JRadioButton[options.length];
         for (int i = 0; i < options.length; i++) {
@@ -149,20 +197,13 @@ public class RadioQuestion extends JPanel implements ActionListener {
     }
 
     public void showResult() {
-//        String text = responses[selected].getText();
+
         quiz.total++;
 
-//        JLabel correct = new JLabel("Correct!");
-//        msgPanel.add(correct);
-//        correct.setForeground(Color.green);
-//
-//        JLabel wrong = new JLabel("Wrong!");
-//        msgPanel.add(wrong);
-//        wrong.setForeground(Color.red);
         if (selected == correctAns) {
             quiz.corrects++;
             ImageIcon icon1 = new ImageIcon("src\\Images\\right.png");
-//            ImageIcon icon1 = new ImageIcon(getClass().getClassLoader().getResource("resources\\Images\\right.png"));
+
             
             JOptionPane.showMessageDialog(null, " Correct!", "Result", JOptionPane.INFORMATION_MESSAGE, icon1);
         } else {

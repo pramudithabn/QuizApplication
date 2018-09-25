@@ -11,6 +11,8 @@ package main;
  */
 public class Question {
     
+    
+    
       private int id;
     private String description;
     private String option1;
@@ -29,6 +31,17 @@ public class Question {
         this.option4=op4;
         this.pic = pic;
         this.answer=ans;
+        
+    
+    }
+    
+      public Question(String op1,String op2,String op3,String op4){
+       
+        this.option1=op1;
+        this.option2=op2;
+        this.option3=op3;
+        this.option4=op4;
+     
         
     
     }
