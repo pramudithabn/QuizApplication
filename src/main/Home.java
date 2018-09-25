@@ -2,9 +2,6 @@ package main;
 
 
 import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Toolkit;
-import static javafx.application.Platform.exit;
 
 /*
  * To change this license header, choose License Headers in Project Properties.

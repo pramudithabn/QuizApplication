@@ -350,7 +350,7 @@ public class QuizApplication extends javax.swing.JFrame {
                 picLabel.setIcon(ii);
 
             } catch (IOException ex) {
-                Logger.getLogger(RadioQuestion.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(QuizApplication.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else {
             picLabel.setIcon(null);
