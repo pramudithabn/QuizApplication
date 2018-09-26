@@ -2,6 +2,8 @@ package main;
 
 import java.awt.Font;
 import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -20,6 +22,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
+import javax.swing.Timer;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -42,11 +45,12 @@ public class QuizApplication extends javax.swing.JFrame {
 
     int numQs;
     int wrongs = 0;
-    int corrects = 0;
+    double corrects = 0;
     int total = 0;
 
     int correctAns = 0;
     int selected = 0;
+    int attempt = 0;
 
     public static final Random gen = new Random();
 
@@ -86,6 +90,7 @@ public class QuizApplication extends javax.swing.JFrame {
         picLabel = new javax.swing.JLabel();
         submitButton = new javax.swing.JButton();
         rslabel = new javax.swing.JLabel();
+        attemptLabel = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -109,6 +114,11 @@ public class QuizApplication extends javax.swing.JFrame {
         option1.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         option1.setText("jRadioButton1");
         option1.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        option1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                option1ActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -180,6 +190,9 @@ public class QuizApplication extends javax.swing.JFrame {
         rslabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         rslabel.setForeground(new java.awt.Color(255, 204, 0));
 
+        attemptLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        attemptLabel.setForeground(new java.awt.Color(255, 153, 0));
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -206,7 +219,10 @@ public class QuizApplication extends javax.swing.JFrame {
                         .addGap(119, 119, 119)
                         .addComponent(submitButton, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(nextButton, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(nextButton, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(62, 62, 62)
+                        .addComponent(attemptLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 151, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -228,7 +244,9 @@ public class QuizApplication extends javax.swing.JFrame {
                         .addComponent(ansPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addComponent(rslabel, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(28, 28, 28)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(attemptLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(1, 1, 1)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(nextButton, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(submitButton, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -242,6 +260,7 @@ public class QuizApplication extends javax.swing.JFrame {
 
     private void nextButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nextButtonActionPerformed
         rslabel.setIcon(null);
+        attemptLabel.setIcon(null);
         setVisibleContent();
 
 
@@ -266,6 +285,10 @@ public class QuizApplication extends javax.swing.JFrame {
 
     }//GEN-LAST:event_submitButtonActionPerformed
 
+    private void option1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_option1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_option1ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -286,6 +309,7 @@ public class QuizApplication extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel ansPanel;
+    private javax.swing.JLabel attemptLabel;
     private javax.swing.ButtonGroup buttonGroup;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JButton nextButton;
@@ -305,20 +329,21 @@ public class QuizApplication extends javax.swing.JFrame {
 
         buttonGroup.clearSelection();
 //        int a = getRandomNumberInRange(1, 9);
+        attempt = 1;
         int a = genRandomInt(listSize);
-        
-        if(a==listSize){
-            a--;
+
+        if (a == listSize) {
+            a = a - 2;
         }
-        
-        for(int b =0 ; b < used.length ; b++){
-           if(used[b]==a){
-               a++;
-           }
-            
+
+        for (int b = 0; b < used.length; b++) {
+            if (used[b] == a) {
+                a++;
+            }
+
         }
         System.out.println(a);
-        i=a;
+        i = a;
         qnum++;
 
         numQs = 5;
@@ -423,20 +448,62 @@ public class QuizApplication extends javax.swing.JFrame {
 //            
 //       
 //        }
+//**/*.java,**/*.form
 
-        if (selected == correctAns) {
+        if ((selected == correctAns) && attempt == 1) {
 
             corrects++;
-            ImageIcon icon1 = new ImageIcon("src\\Images\\right.png");
-
+//            ImageIcon icon1 = new ImageIcon("src\\Images\\right.png");
+            ImageIcon icon1 = new ImageIcon(getClass().getClassLoader().getResource("right.png"));
             rslabel.setIcon(icon1);
 
 //            JOptionPane.showMessageDialog(null, " Correct!", "Result", JOptionPane.INFORMATION_MESSAGE, icon1);
-        } else {
+        } else if ((selected == correctAns) && attempt == 2) {
+            corrects = corrects + 0.75;
+            System.out.print("corrects =  " + corrects);
+        } else if ((selected == correctAns) && attempt == 3) {
+            corrects = corrects + 0.50;
+            System.out.print("corrects =  " + corrects);
+        } else if (selected == 0) {
+
+            attemptLabel.setText("Please select an answer...");
             wrongs++;
-            ImageIcon icon2 = new ImageIcon("src\\Images\\wrong.png");
+        } else if (selected != correctAns) {
+//            wrongs++;
+            ImageIcon icon2 = new ImageIcon(getClass().getClassLoader().getResource("wrong.png"));
             rslabel.setIcon(icon2);
+
+            if (attempt == 1) {
+
+                int attempt = 2;
+//                ImageIcon icon2 = new ImageIcon("src\\Images\\wrong.png");
+                attemptLabel.setText("Attempt 2...");
+
+                int delay = 5000; //milliseconds
+                ActionListener taskPerformer = new ActionListener() {
+                    public void actionPerformed(ActionEvent evt) {
+//                        attemptLabel.setText(null);
+//                       rslabel.setIcon(null);
+                        
+                    }
+                };
+                new Timer(delay, taskPerformer).start();
 //            JOptionPane.showMessageDialog(null, " Wrong", "Result", JOptionPane.INFORMATION_MESSAGE, icon2);
+                System.out.println("attempt =  " + attempt);
+
+            }
+            if (attempt == 2) {
+
+                int attempt = 3;
+//                ImageIcon icon2 = new ImageIcon("src\\Images\\wrong.png");
+//            ImageIcon icon2 = new ImageIcon(getClass().getClassLoader().getResource("wrong.png"));
+//            rslabel.setIcon(icon2);
+
+                attemptLabel.setText("Attempt 3...");
+//            JOptionPane.showMessageDialog(null, " Wrong", "Result", JOptionPane.INFORMATION_MESSAGE, icon2);
+                System.out.print("attempt =  " + attempt);
+            }
+
         }
 
         if ((numQs - corrects - wrongs) == 0) {
@@ -447,7 +514,8 @@ public class QuizApplication extends javax.swing.JFrame {
 
     public void showSummary() {
 
-        ImageIcon icon3 = new ImageIcon("src\\Images\\award1.png");
+//        ImageIcon icon3 = new ImageIcon("src\\Images\\award1.png");
+        ImageIcon icon3 = new ImageIcon(getClass().getClassLoader().getResource("award1.png"));
 //        ImageIcon icon3 = new ImageIcon("resources\\Images\\award1.png");
         String s = "Results";
         JLabel label = new JLabel(s);
