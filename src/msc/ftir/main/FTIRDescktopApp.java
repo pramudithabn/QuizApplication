@@ -2,6 +2,8 @@ package msc.ftir.main;
 
 import static com.sun.javafx.binding.StringFormatter.convert;
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Toolkit;
 import net.proteanit.sql.DbUtils;
 import java.io.BufferedReader;
@@ -59,19 +61,6 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         initComponents();
 
         JFrame.setDefaultLookAndFeelDecorated(true);
-        try {
-            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-
-            Toolkit tk = Toolkit.getDefaultToolkit();
-
-            int scrnsizeX = (int) tk.getScreenSize().getWidth();
-            int scrnsizeY = (int) tk.getScreenSize().getHeight();
-
-//        System.out.print(scrnsizeX + " " + scrnsizeY);
-            this.setSize(scrnsizeX, scrnsizeY - 40);
-        } catch (Exception e) {
-            System.out.println(e);
-        }
 
         conn = Javaconnect.ConnecrDb();
         update_table();
@@ -98,7 +87,6 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         jButton1 = new javax.swing.JButton();
         button_specgen = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
-        jPanel2 = new javax.swing.JPanel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
@@ -126,7 +114,9 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         specPanel.setBackground(new java.awt.Color(20, 27, 32));
+        specPanel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
+        dataTable.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         dataTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {},
@@ -156,7 +146,6 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabel1.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel1.setIcon(new javax.swing.ImageIcon("D:\\Images\\icons8_Data_Sheet_26px.png")); // NOI18N
         jLabel1.setText("Data");
 
         clearButton.setText("Clear");
@@ -208,7 +197,7 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
                                 .addGroup(specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(button_specgen, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE))))))
-                .addContainerGap(35, Short.MAX_VALUE))
+                .addContainerGap(23, Short.MAX_VALUE))
         );
         specPanelLayout.setVerticalGroup(
             specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -233,33 +222,21 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
                     .addGroup(specPanelLayout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(button_specgen)))
-                .addContainerGap(13, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jPanel1.setBackground(new java.awt.Color(53, 62, 74));
+        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+        jPanel1.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 391, Short.MAX_VALUE)
+            .addGap(0, 710, Short.MAX_VALUE)
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 285, Short.MAX_VALUE)
-        );
-
-        jPanel2.setBackground(new java.awt.Color(20, 27, 32));
-
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
         );
 
         jMenu1.setText("File");
@@ -325,18 +302,15 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(specPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(specPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(0, 0, Short.MAX_VALUE))
             .addComponent(specPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
@@ -468,7 +442,6 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItem4;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JTextField jTextField1;
@@ -501,30 +474,41 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
     private void generate_spectrum() {
         try {
 
-//            AttributedString wn = new AttributedString("Wavenumber (cm-1)");
-//            wn.addAttribute(TextAttribute.SUPERSCRIPT, TextAttribute.SUPERSCRIPT_SUPER, 15, 16);
-//            System.out.println(wn);
             String query1 = "select WAVENUMBER, TRANSMITTANCE from input_data";
             JDBCXYDataset dataset = new JDBCXYDataset(Javaconnect.ConnecrDb(), query1);
             JFreeChart spec = ChartFactory.createXYLineChart("FTIR Spectrum", "Wavenumber (cm-1)", "Transmittance %", dataset, PlotOrientation.VERTICAL, false, true, true);
-
             ChartPanel chartPanel = new ChartPanel(spec);
+            
             chartPanel.setDomainZoomable(true);
 
-            JPanel jPanel = new JPanel();
-            jPanel.setLayout(new BorderLayout());
-            jPanel.add(chartPanel, BorderLayout.CENTER);
+//            JPanel jPanel = new JPanel();
+//            jPanel.setLayout(new BorderLayout());
+//            jPanel.add(chartPanel, BorderLayout.CENTER);
 
             BarRenderer renderer = null;
             XYPlot plot = spec.getXYPlot();
             NumberAxis range = (NumberAxis) plot.getRangeAxis();
             range.setAutoRange(true);
             renderer = new BarRenderer();
+            
+            
+            
             JFrame frame = new JFrame();
-            frame.add(jPanel);
+            frame.add(chartPanel);
             frame.setVisible(true);
             frame.setSize(1000, 600);
             frame.pack();
+
+
+chartPanel.setPreferredSize(new Dimension(1000,600));
+JLabel l1 = new JLabel("Hiiii");
+l1.setSize(10,10);
+ jPanel1.add(l1);
+ jPanel1.setPreferredSize(new Dimension(50, 50));
+//            jPanel1.add(chartPanel,BorderLayout.CENTER);
+//            jPanel1.setVisible(true);
+//           
+//            jPanel1.validate();
 
             NumberAxis domain = (NumberAxis) plot.getDomainAxis();
 //            domain.setRange(400.000000, 4000.000000);
