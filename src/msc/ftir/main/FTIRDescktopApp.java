@@ -1,19 +1,14 @@
 package msc.ftir.main;
 
-import static com.sun.javafx.binding.StringFormatter.convert;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import net.proteanit.sql.DbUtils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import javax.swing.JFileChooser;
 import java.sql.*;
-import java.text.DecimalFormat;
 import javax.swing.*;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -21,7 +16,6 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.BarRenderer;
 import java.util.*;
 import java.util.regex.*;
-import javax.swing.UIManager;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
@@ -45,21 +39,18 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
     ArrayList<Integer> errorLine = new ArrayList<>();
     boolean dataformatvalidity;
     private Object[][] dataArray = new Object[1000][2];
-//    private double[] wavArray = new double[1000];
-//    private double[] transArray = new double[1000];
-//    String[] stringArray = Arrays.copyOf(dataArray, dataArray.length, String[].class);
 
     /**
      * Creates new form HelloWorld
      */
     public FTIRDescktopApp() {
 
-//        this.setUndecorated(false);
-//        this.setAlwaysOnTop(true);
-//        this.setResizable(true);
-//        this.setVisible(true);
         initComponents();
-
+        
+//        Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
+//        setSize(d.width, d.height-30);
+        
+        setExtendedState(getExtendedState()|JFrame.MAXIMIZED_BOTH );
         JFrame.setDefaultLookAndFeelDecorated(true);
 
         conn = Javaconnect.ConnecrDb();
@@ -76,7 +67,7 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
     private void initComponents() {
 
         jDialog1 = new javax.swing.JDialog();
-        specPanel = new javax.swing.JPanel();
+        backPanel = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         dataTable = new javax.swing.JTable();
         jTextField1 = new javax.swing.JTextField();
@@ -86,7 +77,7 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         clearButton = new javax.swing.JButton();
         jButton1 = new javax.swing.JButton();
         button_specgen = new javax.swing.JButton();
-        jPanel1 = new javax.swing.JPanel();
+        specPanel = new javax.swing.JPanel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
@@ -113,8 +104,8 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        specPanel.setBackground(new java.awt.Color(20, 27, 32));
-        specPanel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        backPanel.setBackground(new java.awt.Color(20, 27, 32));
+        backPanel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
         dataTable.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         dataTable.setModel(new javax.swing.table.DefaultTableModel(
@@ -169,74 +160,71 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
             }
         });
 
-        javax.swing.GroupLayout specPanelLayout = new javax.swing.GroupLayout(specPanel);
-        specPanel.setLayout(specPanelLayout);
-        specPanelLayout.setHorizontalGroup(
-            specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(specPanelLayout.createSequentialGroup()
-                .addGroup(specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addGroup(specPanelLayout.createSequentialGroup()
+        javax.swing.GroupLayout backPanelLayout = new javax.swing.GroupLayout(backPanel);
+        backPanel.setLayout(backPanelLayout);
+        backPanelLayout.setHorizontalGroup(
+            backPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(backPanelLayout.createSequentialGroup()
+                .addGroup(backPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(backPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addGroup(backPanelLayout.createSequentialGroup()
                             .addContainerGap()
                             .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addGap(18, 18, 18)
                             .addComponent(clearButton, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(specPanelLayout.createSequentialGroup()
+                        .addGroup(backPanelLayout.createSequentialGroup()
                             .addGap(330, 330, 330)
                             .addComponent(uploadButton, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(specPanelLayout.createSequentialGroup()
+                    .addGroup(backPanelLayout.createSequentialGroup()
                         .addGap(10, 10, 10)
-                        .addGroup(specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(specPanelLayout.createSequentialGroup()
+                        .addGroup(backPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(backPanelLayout.createSequentialGroup()
                                 .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 410, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(10, 10, 10)
                                 .addComponent(fileBrowserButton, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(specPanelLayout.createSequentialGroup()
+                            .addGroup(backPanelLayout.createSequentialGroup()
                                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 305, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(15, 15, 15)
-                                .addGroup(specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addGroup(backPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(button_specgen, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE))))))
                 .addContainerGap(23, Short.MAX_VALUE))
         );
-        specPanelLayout.setVerticalGroup(
-            specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(specPanelLayout.createSequentialGroup()
+        backPanelLayout.setVerticalGroup(
+            backPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(backPanelLayout.createSequentialGroup()
                 .addGap(10, 10, 10)
-                .addGroup(specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(backPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(fileBrowserButton, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(10, 10, 10)
                 .addComponent(uploadButton)
-                .addGroup(specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(specPanelLayout.createSequentialGroup()
+                .addGroup(backPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(backPanelLayout.createSequentialGroup()
                         .addGap(12, 12, 12)
                         .addComponent(jLabel1))
-                    .addGroup(specPanelLayout.createSequentialGroup()
+                    .addGroup(backPanelLayout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(clearButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton1)))
-                .addGroup(specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(backPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 440, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(specPanelLayout.createSequentialGroup()
+                    .addGroup(backPanelLayout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(button_specgen)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
-        jPanel1.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 710, Short.MAX_VALUE)
+        javax.swing.GroupLayout specPanelLayout = new javax.swing.GroupLayout(specPanel);
+        specPanel.setLayout(specPanelLayout);
+        specPanelLayout.setHorizontalGroup(
+            specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 700, Short.MAX_VALUE)
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 285, Short.MAX_VALUE)
+        specPanelLayout.setVerticalGroup(
+            specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 391, Short.MAX_VALUE)
         );
 
         jMenu1.setText("File");
@@ -302,16 +290,18 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(specPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(backPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(specPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(backPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
-            .addComponent(specPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap()
+                .addComponent(specPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -337,6 +327,10 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem2ActionPerformed
 
     private void uploadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadButtonActionPerformed
+        if (fileName == null) {
+            JOptionPane.showMessageDialog(null, "Please select a file!", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
         if (validateFileType()) {
 
             vaidateDataFormat();
@@ -423,6 +417,7 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel backPanel;
     private javax.swing.JButton button_specgen;
     private javax.swing.JButton clearButton;
     public javax.swing.JTable dataTable;
@@ -441,7 +436,6 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItem4;
-    private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JTextField jTextField1;
@@ -476,44 +470,45 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
 
             String query1 = "select WAVENUMBER, TRANSMITTANCE from input_data";
             JDBCXYDataset dataset = new JDBCXYDataset(Javaconnect.ConnecrDb(), query1);
-            JFreeChart spec = ChartFactory.createXYLineChart("FTIR Spectrum", "Wavenumber (cm-1)", "Transmittance %", dataset, PlotOrientation.VERTICAL, false, true, true);
-            ChartPanel chartPanel = new ChartPanel(spec);
             
-            chartPanel.setDomainZoomable(true);
+            JFreeChart spec = ChartFactory.createXYLineChart("FTIR Spectrum", "Wavenumber (cm-1)", "Transmittance %", dataset, PlotOrientation.VERTICAL, false, true, true);
+    
+            spec.setBorderVisible(false);
 
-//            JPanel jPanel = new JPanel();
-//            jPanel.setLayout(new BorderLayout());
-//            jPanel.add(chartPanel, BorderLayout.CENTER);
+            spec.getXYPlot().setDomainGridlinesVisible(false);
+            
+            
+           
+            ChartPanel chartPanel = new ChartPanel(spec);
+            System.out.println(chartPanel.getPreferredSize());
+            chartPanel.setPreferredSize(new Dimension(700,500));
+            chartPanel.setDomainZoomable(true);
 
             BarRenderer renderer = null;
             XYPlot plot = spec.getXYPlot();
             NumberAxis range = (NumberAxis) plot.getRangeAxis();
             range.setAutoRange(true);
             renderer = new BarRenderer();
-            
-            
-            
-            JFrame frame = new JFrame();
-            frame.add(chartPanel);
-            frame.setVisible(true);
-            frame.setSize(1000, 600);
-            frame.pack();
+            //old
+//            JFrame frame = new JFrame();
+//            frame.add(chartPanel);
+//            frame.setVisible(true);
+//            frame.setSize(1000, 600);
+//            frame.pack();
+//            chartPanel.setPreferredSize(new Dimension(1000,600));
 
-
-chartPanel.setPreferredSize(new Dimension(1000,600));
-JLabel l1 = new JLabel("Hiiii");
-l1.setSize(10,10);
- jPanel1.add(l1);
- jPanel1.setPreferredSize(new Dimension(50, 50));
-//            jPanel1.add(chartPanel,BorderLayout.CENTER);
-//            jPanel1.setVisible(true);
-//           
-//            jPanel1.validate();
+            specPanel.setLayout(new java.awt.BorderLayout());
+            specPanel.add(chartPanel, BorderLayout.CENTER);
+            specPanel.validate();
+            specPanel.setPreferredSize(new Dimension(700,500));
+            specPanel.setVisible(true);
+           
 
             NumberAxis domain = (NumberAxis) plot.getDomainAxis();
-//            domain.setRange(400.000000, 4000.000000);
             domain.setAutoRange(true);
             domain.setInverted(true);
+
+            System.out.print("Yes");
 
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, e);
@@ -575,7 +570,6 @@ l1.setSize(10,10);
 
             if (invalid_input > 0) {
 
-//                JOptionPane.showMessageDialog(null, "Data format error!", "Error", JOptionPane.ERROR_MESSAGE);
                 String msg = "Data format errors are found at line #" + Arrays.toString(errorLine.toArray());
 
                 JOptionPane optionPane = new JOptionPane();
@@ -586,7 +580,6 @@ l1.setSize(10,10);
                 dataformatvalidity = false;
 
             } else {
-//                JOptionPane.showMessageDialog(null, "Data format is correct!");
                 System.out.println("Data format is correct!");
                 dataformatvalidity = true;
 
@@ -607,13 +600,11 @@ l1.setSize(10,10);
         Matcher mtch = fileExtPattern.matcher(fileName);
         if (mtch.matches()) {
 
-//            JOptionPane.showMessageDialog(null, "Vaild file format.");
             System.out.println(fileName);
             System.out.println(mtch.matches());
             return true;
 
         } else {
-//            JOptionPane.showMessageDialog(null, "Invalid file format!", "Error", JOptionPane.ERROR_MESSAGE);
             return false;
         }
     }
@@ -629,8 +620,7 @@ l1.setSize(10,10);
 
             while ((line = br.readLine()) != null) {
 
-                //Make sure the line is not null, not empty, and contains data format
-//                    if (!line.equals("") && line.matches("\\d{3,4}\\.\\d{6}[ \\t]\\d{1,2}\\.\\d{6}\\s")) {
+                //Make sure the line is not null, not empty, and contains valid data format
                 if (!line.equals("") && line.matches("\\d{3,4}\\.\\d{5,6}(\\,|[ \\t])\\d{1,2}\\.\\d{5,6}(\\,|[ \\t]*)")) {
 
                     String cvsfiletype = "(?:[\\w]\\:|\\\\)(\\\\[a-zA-Z_\\-\\s0-9\\.]+)+\\.(csv)";
@@ -656,9 +646,9 @@ l1.setSize(10,10);
                         value = line.split(","); //if the file is CVS
                     } //if the file is text
                     else if (mtch2.matches()) {
-                        value = line.split("\\s+"); //whitespace regex 
+                        value = line.split("\\s+"); //whitespace regex TXT
                     } else if (mtch5.matches()) {
-                        value = line.split("\\s+"); //whitespace regex 
+                        value = line.split("\\s+"); //whitespace regex DPT
                     }
 
                     String sql = "insert into input_data (WAVENUMBER , TRANSMITTANCE)" + "values ('" + value[0] + "','" + value[1] + "')";
@@ -727,22 +717,19 @@ l1.setSize(10,10);
             System.out.println("At x = " + dataTable.getModel().getValueAt(i, 0) + " f'(x) = " + d);
 
             dArray[i] = d;
-            
-            
 
         }
-        
+
         for (int k = 0; k < dArray.length; k++) {
-            System.out.print(dArray[k]+",");
+            System.out.print(dArray[k] + ",");
         }
-        
+
 //        ArrayList a = new ArrayList();
 //        a = locateDownwardSpickes(dArray);
 //
 //        for (int k = 0; k < a.size(); k++) {
 //            System.out.println(a.get(k));
 //        }
-
     }
 
     public ArrayList locateDownwardSpickes(long arr[]) {
