@@ -1,10 +1,6 @@
 package msc.ftir.main;
 
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import msc.ftir.main.FTIRDescktopApp;
-import org.jfree.chart.plot.XYPlot;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
