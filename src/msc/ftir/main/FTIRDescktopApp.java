@@ -1,8 +1,8 @@
 package msc.ftir.main;
 
 import java.awt.BorderLayout;
+import javafx.scene.control.Button;
 import java.awt.Dimension;
-import java.awt.Toolkit;
 import net.proteanit.sql.DbUtils;
 import java.io.BufferedReader;
 import java.io.File;
@@ -16,10 +16,23 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.BarRenderer;
 import java.util.*;
 import java.util.regex.*;
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
+import javafx.util.Duration;
+import javafx.scene.layout.HBox;
+import msc.ftir.util.FileType;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.jdbc.JDBCXYDataset;
+
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -38,7 +51,7 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
     private String fileName;
     ArrayList<Integer> errorLine = new ArrayList<>();
     boolean dataformatvalidity;
-    private Object[][] dataArray = new Object[1000][2];
+    public Object[][] dataArray = new Object[1000][2];
 
     /**
      * Creates new form HelloWorld
@@ -46,15 +59,16 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
     public FTIRDescktopApp() {
 
         initComponents();
-        
+
 //        Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
 //        setSize(d.width, d.height-30);
-        
-        setExtendedState(getExtendedState()|JFrame.MAXIMIZED_BOTH );
+        setExtendedState(getExtendedState() | JFrame.MAXIMIZED_BOTH);
         JFrame.setDefaultLookAndFeelDecorated(true);
 
         conn = Javaconnect.ConnecrDb();
         update_table();
+
+//    
     }
 
     /**
@@ -67,18 +81,19 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
     private void initComponents() {
 
         jDialog1 = new javax.swing.JDialog();
-        backPanel = new javax.swing.JPanel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        dataTable = new javax.swing.JTable();
-        jTextField1 = new javax.swing.JTextField();
-        fileBrowserButton = new javax.swing.JButton();
-        uploadButton = new javax.swing.JButton();
-        jLabel1 = new javax.swing.JLabel();
-        clearButton = new javax.swing.JButton();
-        jButton1 = new javax.swing.JButton();
-        button_specgen = new javax.swing.JButton();
         specPanel = new javax.swing.JPanel();
         rsPanel = new javax.swing.JPanel();
+        jToolBar1 = new javax.swing.JToolBar();
+        clearButton = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
+        smoothedSpecButton = new javax.swing.JButton();
+        button_specgen = new javax.swing.JButton();
+        jPanel1 = new javax.swing.JPanel();
+        jTextField1 = new javax.swing.JTextField();
+        fileBrowserButton = new javax.swing.JButton();
+        tablePanel = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        dataTable = new javax.swing.JTable();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
@@ -104,8 +119,98 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("FTIR Interpreter");
 
-        backPanel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        specPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "FTIR SPECTRUM", javax.swing.border.TitledBorder.LEFT, javax.swing.border.TitledBorder.TOP, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
+
+        javax.swing.GroupLayout specPanelLayout = new javax.swing.GroupLayout(specPanel);
+        specPanel.setLayout(specPanelLayout);
+        specPanelLayout.setHorizontalGroup(
+            specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+        specPanelLayout.setVerticalGroup(
+            specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 292, Short.MAX_VALUE)
+        );
+
+        rsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "SMOOTHED SPECTRUM", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
+
+        javax.swing.GroupLayout rsPanelLayout = new javax.swing.GroupLayout(rsPanel);
+        rsPanel.setLayout(rsPanelLayout);
+        rsPanelLayout.setHorizontalGroup(
+            rsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 642, Short.MAX_VALUE)
+        );
+        rsPanelLayout.setVerticalGroup(
+            rsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 329, Short.MAX_VALUE)
+        );
+
+        jToolBar1.setRollover(true);
+
+        clearButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/Broom_20px.png"))); // NOI18N
+        clearButton.setText("Clear");
+        clearButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                clearButtonActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(clearButton);
+
+        jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/Sort Up_20px.png"))); // NOI18N
+        jButton1.setText("Peak");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(jButton1);
+
+        smoothedSpecButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/Plot_20px.png"))); // NOI18N
+        smoothedSpecButton.setText("Smooth");
+        smoothedSpecButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                smoothedSpecButtonActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(smoothedSpecButton);
+
+        button_specgen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/Line Chart_20px.png"))); // NOI18N
+        button_specgen.setText("Plot");
+        button_specgen.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                button_specgenActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(button_specgen);
+
+        fileBrowserButton.setText("Open");
+        fileBrowserButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                fileBrowserButtonActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addComponent(jTextField1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(fileBrowserButton, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(fileBrowserButton, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
 
         dataTable.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         dataTable.setModel(new javax.swing.table.DefaultTableModel(
@@ -121,123 +226,21 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         ));
         jScrollPane1.setViewportView(dataTable);
 
-        fileBrowserButton.setText("...");
-        fileBrowserButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                fileBrowserButtonActionPerformed(evt);
-            }
-        });
-
-        uploadButton.setText("Upload");
-        uploadButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                uploadButtonActionPerformed(evt);
-            }
-        });
-
-        jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabel1.setText("Data");
-
-        clearButton.setText("Clear");
-        clearButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                clearButtonActionPerformed(evt);
-            }
-        });
-
-        jButton1.setText("Peak");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-
-        button_specgen.setText("View Spectrum");
-        button_specgen.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                button_specgenActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout backPanelLayout = new javax.swing.GroupLayout(backPanel);
-        backPanel.setLayout(backPanelLayout);
-        backPanelLayout.setHorizontalGroup(
-            backPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(backPanelLayout.createSequentialGroup()
-                .addGroup(backPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(backPanelLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(backPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(backPanelLayout.createSequentialGroup()
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 305, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(clearButton, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(backPanelLayout.createSequentialGroup()
-                                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 302, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(uploadButton, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                    .addGroup(backPanelLayout.createSequentialGroup()
-                        .addGap(10, 10, 10)
-                        .addGroup(backPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(backPanelLayout.createSequentialGroup()
-                                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 410, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(10, 10, 10)
-                                .addComponent(fileBrowserButton, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(backPanelLayout.createSequentialGroup()
-                                .addGap(320, 320, 320)
-                                .addGroup(backPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(button_specgen, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE))))))
-                .addContainerGap(23, Short.MAX_VALUE))
-        );
-        backPanelLayout.setVerticalGroup(
-            backPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(backPanelLayout.createSequentialGroup()
-                .addGap(10, 10, 10)
-                .addGroup(backPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(fileBrowserButton, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(9, 9, 9)
-                .addGroup(backPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(uploadButton)
-                    .addComponent(jLabel1))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(backPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(backPanelLayout.createSequentialGroup()
-                        .addComponent(clearButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(button_specgen)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 470, Short.MAX_VALUE))
+        javax.swing.GroupLayout tablePanelLayout = new javax.swing.GroupLayout(tablePanel);
+        tablePanel.setLayout(tablePanelLayout);
+        tablePanelLayout.setHorizontalGroup(
+            tablePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(tablePanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 501, Short.MAX_VALUE)
                 .addContainerGap())
         );
-
-        specPanel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
-
-        javax.swing.GroupLayout specPanelLayout = new javax.swing.GroupLayout(specPanel);
-        specPanel.setLayout(specPanelLayout);
-        specPanelLayout.setHorizontalGroup(
-            specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 696, Short.MAX_VALUE)
-        );
-        specPanelLayout.setVerticalGroup(
-            specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 391, Short.MAX_VALUE)
-        );
-
-        rsPanel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
-
-        javax.swing.GroupLayout rsPanelLayout = new javax.swing.GroupLayout(rsPanel);
-        rsPanel.setLayout(rsPanelLayout);
-        rsPanelLayout.setHorizontalGroup(
-            rsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-        );
-        rsPanelLayout.setVerticalGroup(
-            rsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+        tablePanelLayout.setVerticalGroup(
+            tablePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(tablePanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         jMenu1.setText("File");
@@ -303,24 +306,31 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(4, 4, 4)
-                .addComponent(backPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(specPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(rsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(tablePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(rsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(specPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addContainerGap())
+                    .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(backPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(specPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(rsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addComponent(specPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(rsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(tablePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -335,18 +345,6 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         fileName = dataFile.getAbsolutePath();
         jTextField1.setText(fileName);
 
-
-    }//GEN-LAST:event_fileBrowserButtonActionPerformed
-
-    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jMenuItem1ActionPerformed
-
-    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jMenuItem2ActionPerformed
-
-    private void uploadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadButtonActionPerformed
         if (fileName == null) {
             JOptionPane.showMessageDialog(null, "Please select a file!", "Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -381,7 +379,16 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
 
         }
 
-    }//GEN-LAST:event_uploadButtonActionPerformed
+
+    }//GEN-LAST:event_fileBrowserButtonActionPerformed
+
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jMenuItem1ActionPerformed
+
+    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jMenuItem2ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
 //        vaidateDataFormat();
@@ -393,25 +400,47 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
 
     private void clearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearButtonActionPerformed
         int p = JOptionPane.showConfirmDialog(null, "Are you sure you want to clear data?", "Delete Confirmation", JOptionPane.YES_NO_OPTION);
+        PreparedStatement pst1 = null;
+        PreparedStatement pst2 = null;
 
         if (p == 0) {
-            String sql = "delete from input_data";
+            String sql1 = "delete from input_data";
+            String sql2 = "delete from avg_data";
+
             try {
-                pst = conn.prepareStatement(sql);
-                pst.execute();
+                pst1 = conn.prepareStatement(sql1);
+                pst1.execute();
+
+                pst2 = conn.prepareStatement(sql2);
+                pst2.execute();
                 JOptionPane.showMessageDialog(null, "Delete Successful!");
+
+                specPanel.removeAll();
+                specPanel.revalidate();
+                specPanel.repaint();
+
+                rsPanel.removeAll();
+                rsPanel.revalidate();
+                rsPanel.repaint();
 
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(null, e);
+            } finally {
+                try {
+                   pst1.close();
+                   pst2.close();
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(null, e);
+                }
             }
             update_table();
+
         }
     }//GEN-LAST:event_clearButtonActionPerformed
 
     private void button_specgenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_specgenActionPerformed
 
         generate_spectrum();
-//            createSpectrum();
 
 
     }//GEN-LAST:event_button_specgenActionPerformed
@@ -423,6 +452,14 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
     private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jMenuItem4ActionPerformed
+
+    private void smoothedSpecButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_smoothedSpecButtonActionPerformed
+        LineSmoother ls = new LineSmoother();
+
+        createSmoothed_spectrum();
+
+
+    }//GEN-LAST:event_smoothedSpecButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -437,14 +474,12 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel backPanel;
     private javax.swing.JButton button_specgen;
     private javax.swing.JButton clearButton;
-    public javax.swing.JTable dataTable;
+    public static javax.swing.JTable dataTable;
     private javax.swing.JButton fileBrowserButton;
     private javax.swing.JButton jButton1;
     private javax.swing.JDialog jDialog1;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
@@ -456,18 +491,21 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItem4;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JTextField jTextField1;
-    private javax.swing.JPanel rsPanel;
+    private javax.swing.JToolBar jToolBar1;
+    public javax.swing.JPanel rsPanel;
+    private javax.swing.JButton smoothedSpecButton;
     private javax.swing.JPanel specPanel;
-    private javax.swing.JButton uploadButton;
+    private javax.swing.JPanel tablePanel;
     // End of variables declaration//GEN-END:variables
 
     private void update_table() {
 
         try {
-            String sql = "select WAVENUMBER , TRANSMITTANCE from input_data";
+            String sql = "select ID AS \"INDEX\", WAVENUMBER , TRANSMITTANCE from input_data";
 
             pst = conn.prepareStatement(sql);
             rs = pst.executeQuery();
@@ -490,19 +528,17 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         try {
 
             String query1 = "select WAVENUMBER, TRANSMITTANCE from input_data";
-            JDBCXYDataset dataset = new JDBCXYDataset(Javaconnect.ConnecrDb(), query1);
-            
-            JFreeChart spec = ChartFactory.createXYLineChart("FTIR Spectrum", "Wavenumber (cm-1)", "Transmittance %", dataset, PlotOrientation.VERTICAL, false, true, true);
-    
+            JDBCXYDataset dataset = new JDBCXYDataset(conn, query1);
+
+            JFreeChart spec = ChartFactory.createXYLineChart("", "Wavenumber (cm-1)", "Transmittance %", dataset, PlotOrientation.VERTICAL, false, true, true);
+
             spec.setBorderVisible(false);
 
             spec.getXYPlot().setDomainGridlinesVisible(false);
-            
-            
-           
+
             ChartPanel chartPanel = new ChartPanel(spec);
             System.out.println(chartPanel.getPreferredSize());
-            chartPanel.setPreferredSize(new Dimension(700,500));
+            chartPanel.setPreferredSize(new Dimension(654, 350));
             chartPanel.setDomainZoomable(true);
 
             BarRenderer renderer = null;
@@ -510,26 +546,16 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
             NumberAxis range = (NumberAxis) plot.getRangeAxis();
             range.setAutoRange(true);
             renderer = new BarRenderer();
-            //old
-//            JFrame frame = new JFrame();
-//            frame.add(chartPanel);
-//            frame.setVisible(true);
-//            frame.setSize(1000, 600);
-//            frame.pack();
-//            chartPanel.setPreferredSize(new Dimension(1000,600));
 
             specPanel.setLayout(new java.awt.BorderLayout());
             specPanel.add(chartPanel, BorderLayout.CENTER);
             specPanel.validate();
-            specPanel.setPreferredSize(new Dimension(700,500));
+            specPanel.setPreferredSize(new Dimension(654, 350));
             specPanel.setVisible(true);
-           
 
             NumberAxis domain = (NumberAxis) plot.getDomainAxis();
             domain.setAutoRange(true);
             domain.setInverted(true);
-
-            System.out.print("Yes");
 
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, e);
@@ -585,14 +611,15 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
             }
             br.close();
 
-            System.out.println(invalid_input + " invalid inputs found at line #" + Arrays.toString(errorLine.toArray()));
+//            System.out.println(invalid_input + " invalid inputs found at line #" + Arrays.toString(errorLine.toArray()));
+            System.out.println("Invalid inputs found!");
             System.out.println("valid inputs = " + valid_input);
             System.out.println("Total Number of lines = " + lineNumber);
 
             if (invalid_input > 0) {
 
-                String msg = "Data format errors are found at line #" + Arrays.toString(errorLine.toArray());
-
+//                String msg = "Data format errors are found at line #" + Arrays.toString(errorLine.toArray());
+                String msg = "Data format errors found!";
                 JOptionPane optionPane = new JOptionPane();
                 optionPane.setMessage(msg);
                 optionPane.setMessageType(JOptionPane.WARNING_MESSAGE);
@@ -633,14 +660,43 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
     private void upload() {
 
         try {
-
+            final String commentChar = "#";
             System.out.println(fileName);
             BufferedReader br = new BufferedReader(new FileReader(fileName));
             String line;
             String[] value = null;
+            StringBuilder sb = new StringBuilder();
 
+            FileType fileType = FileType.TXT;
+
+            if (fileName.toLowerCase().endsWith("txt")) {
+                fileType = FileType.TXT;
+            } else if (fileName.toLowerCase().endsWith("csv")) {
+                fileType = FileType.CSV;
+            } else {
+                System.err.println("Wrong File Extension");
+                System.exit(0);
+            }
+
+            while ((line = br.readLine()) != null && line.startsWith(commentChar)) {
+                //skip
+            }
             while ((line = br.readLine()) != null) {
 
+                switch (fileType) {
+                    case CSV:
+                        value = line.split(",");
+                        break;
+                    case TXT:
+                        value = line.split("\\s+");
+                        break;
+                }
+
+                //sb.append("insert into input_data (WAVENUMBER , TRANSMITTANCE)" + "values ('" + value[0].trim() + "','" + value[1].trim() + "');");
+                String sql = "insert into input_data (WAVENUMBER , TRANSMITTANCE)" + "values ('" + value[0].trim() + "','" + value[1].trim() + "')";
+                pst = conn.prepareStatement(sql);
+                pst.executeUpdate();
+                /*
                 //Make sure the line is not null, not empty, and contains valid data format
                 if (!line.equals("") && line.matches("\\d{3,4}\\.\\d{5,6}(\\,|[ \\t])\\d{1,2}\\.\\d{5,6}(\\,|[ \\t]*)")) {
 
@@ -670,13 +726,19 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
                         value = line.split("\\s+"); //whitespace regex TXT
                     } else if (mtch5.matches()) {
                         value = line.split("\\s+"); //whitespace regex DPT
-                    }
+                    } 
 
                     String sql = "insert into input_data (WAVENUMBER , TRANSMITTANCE)" + "values ('" + value[0] + "','" + value[1] + "')";
                     pst = conn.prepareStatement(sql);
                     pst.executeUpdate();
                 }
+                 */
             }
+
+            /*pst = conn.prepareStatement();
+            pst.addBatch(sb.toString());
+            pst.executeUpdate();
+             */
             br.close();
 
         } catch (Exception e) {
@@ -765,4 +827,98 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         }
         return spikeindex;
     }
+
+    public void createSmoothed_spectrum() {
+        try {
+
+            String query2 = "select WAVENUMBER, TRANSMITTANCE from avg_data";
+            JDBCXYDataset dataset1 = new JDBCXYDataset(conn, query2);
+
+            JFreeChart spec1 = ChartFactory.createXYLineChart("", "Wavenumber (cm-1)", "Transmittance %", dataset1, PlotOrientation.VERTICAL, false, true, true);
+
+            spec1.setBorderVisible(false);
+
+            spec1.getXYPlot().setDomainGridlinesVisible(false);
+
+            ChartPanel chartPanel = new ChartPanel(spec1);
+            System.out.println(chartPanel.getPreferredSize());
+            chartPanel.setPreferredSize(new Dimension(654, 350));
+            chartPanel.setDomainZoomable(true);
+
+            BarRenderer renderer = null;
+            XYPlot plot = spec1.getXYPlot();
+            NumberAxis range = (NumberAxis) plot.getRangeAxis();
+            range.setAutoRange(true);
+            renderer = new BarRenderer();
+
+            rsPanel.setLayout(new java.awt.BorderLayout());
+            rsPanel.add(chartPanel, BorderLayout.CENTER);
+            rsPanel.validate();
+            rsPanel.setPreferredSize(new Dimension(654, 350));
+            rsPanel.setVisible(true);
+
+            NumberAxis domain = (NumberAxis) plot.getDomainAxis();
+            domain.setAutoRange(true);
+            domain.setInverted(true);
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e);
+        }
+        
+    }
+
+    public void start(Stage primaryStage) {
+
+        Button someButton = new Button("Sample content");
+
+        StackPane stackPane = new StackPane();
+        stackPane.setPrefSize(500, 500);
+        stackPane.setStyle("-fx-background-color: blue;");
+
+        Region sliderContent = new Region();
+        sliderContent.setPrefWidth(200);
+        sliderContent.setStyle("-fx-background-color: red; -fx-border-color: orange; -fx-border-width: 5;");
+
+        Button expandButton = new Button(">");
+
+        HBox slider = new HBox();
+        slider.getChildren().addAll(sliderContent, expandButton);
+        slider.setAlignment(Pos.CENTER);
+        slider.setPrefWidth(Region.USE_COMPUTED_SIZE);
+        slider.setMaxWidth(Region.USE_PREF_SIZE);
+
+        // start out of view
+        slider.setTranslateX(-sliderContent.getPrefWidth());
+        StackPane.setAlignment(slider, Pos.CENTER_LEFT);
+
+        // animation for moving the slider
+        Timeline timeline = new Timeline(new KeyFrame(Duration.ZERO, new KeyValue(slider.translateXProperty(), -sliderContent.getPrefWidth())), new KeyFrame(Duration.millis(500), new KeyValue(slider.translateXProperty(), 0d)));
+
+        expandButton.setOnAction(evt -> {
+            // adjust the direction of play and start playing, if not already done
+            String text = expandButton.getText();
+            boolean playing = timeline.getStatus() == Animation.Status.RUNNING;
+            if (">".equals(text)) {
+                timeline.setRate(1);
+                if (!playing) {
+                    timeline.playFromStart();
+                }
+                expandButton.setText("<");
+            } else {
+                timeline.setRate(-1);
+                if (!playing) {
+                    timeline.playFrom("end");
+                }
+                expandButton.setText(">");
+            }
+        });
+
+        stackPane.getChildren().add(slider);
+
+        final Scene scene = new Scene(stackPane);
+
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
 }
