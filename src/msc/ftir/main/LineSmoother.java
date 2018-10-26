@@ -45,9 +45,7 @@ public class LineSmoother {
         conn = Javaconnect.ConnecrDb();
 
         qdata();
-//        calPointAverage();
-////        System.out.println("\n Size = " + avgPointList.size());
-//        loadAvgDataTable();
+
 
     }
 
@@ -78,8 +76,7 @@ public class LineSmoother {
         }
 
         listSize = rowDataList.size();
-        System.out.println("Queried ");
-        System.out.println("data list size = " + rowDataList.size());
+
 
         return rowDataList;
 
@@ -110,52 +107,24 @@ public class LineSmoother {
         avgPointList.add(last);
         System.out.println("Point avg calculated ");
 
-//        for (int i = 0; i < listSize - 1; i++) {
-//            System.out.print(rowDataList.get(i).getTransmittance() + ",");
-//
-//        }
-//        System.out.print("\n");
-//        for (int i = 0; i < avgPointList.size() - 1; i++) {
-//
-//            System.out.print(avgPointList.get(i) + ",");
-//        }
-    }
-
-    public static void main(String[] args) {
-
-        LineSmoother lm = new LineSmoother();
-//        lm.qdata();
-//        lm.calPointAverage();
-//        System.out.println("\n Size = " + lm.avgPointList.size());
-//        lm.loadAvgDataTable();
-//            lm.avgAlgorithm();
 
     }
 
-    public void loadAvgDataTable() {
 
-//        try {
-//            String query1 = "delete from avg_data";
-//            pst = conn.prepareStatement(query1);
-//            pst.execute();
-//            System.out.println("Delete finished");
-//        } catch (Exception e) {
-//        } finally {
-//            try {
-//                pst.close();
-//            } catch (Exception e) {
-//                JOptionPane.showMessageDialog(null, e);
-//            }
-//        }
+
+    public void loadAvgDataTable() throws SQLException {
+
         for (int i = 0; i < avgPointList.size(); i++) {
-            try {
 
-                Statement statement = conn.createStatement();
-                String qry = "insert into avg_data (WAVENUMBER , TRANSMITTANCE) values (?,?)";
+            Statement statement = conn.createStatement();
+            String qry = "insert into avg_data (WAVENUMBER , TRANSMITTANCE) values (?,?)";
+           
+            try {
                 pst = conn.prepareStatement(qry);
 
                 BigDecimal wavenum = rowDataList.get(i).getWavenumber();
                 BigDecimal transmittance = avgPointList.get(i);
+                rowDataList.get(i).setTransmittance(transmittance);
 
                 pst.setBigDecimal(1, wavenum);
                 pst.setBigDecimal(2, transmittance);
@@ -200,15 +169,7 @@ public class LineSmoother {
         minScale = gapDifferenceList.get(minIndex);
         maxScale = gapDifferenceList.get(maxIndex);
 
-        System.out.println("Minimum = " + minScale);
-        System.out.println("Max = " + maxScale);
-        System.out.println("Array size = " + gapDifferenceList.size());
-        System.out.println("Scale = " + scale);
 
-        for (int i = 0; i < gapDifferenceList.size() - 1; i++) {
-            System.out.print(gapDifferenceList.get(i) + ",");
-
-        }
 
         smoothingFactor = ((maxScale.subtract(minScale)).divide(BigDecimal.valueOf(100))).multiply(BigDecimal.valueOf(scale));
 
@@ -226,13 +187,12 @@ public class LineSmoother {
             int res;
 
             res = (gapDifferenceList.get(rindex - 1)).compareTo(smoothingFactor);
-            System.out.println("Res =" + res);
+
 
             if (res == 1 | res == 0) {
                 avgPointList.add(rowDataList.get(rindex - 1).getTransmittance());
-//                avgPointList.add(rowDataList.get(rindex).getTransmittance());
-                System.out.println("added");
 
+                
             } else if (res == -1) {
 
                 BigDecimal n1 = rowDataList.get(rindex - 1).getTransmittance();
@@ -244,7 +204,7 @@ public class LineSmoother {
                 avg = sum.divide(BigDecimal.valueOf(3), 8, RoundingMode.HALF_UP);
 
                 avgPointList.add(avg);
-                System.out.println("added");
+//                System.out.println("added");
 
             }
 
@@ -252,15 +212,15 @@ public class LineSmoother {
         avgPointList.add(last);
         System.out.println("Point avg calculated ");
 
-        for (int i = 0; i < listSize - 1; i++) {
-            System.out.print(rowDataList.get(i).getTransmittance() + ",");
-
-        }
-        System.out.print("\n");
-        for (int i = 0; i < avgPointList.size() - 1; i++) {
-
-            System.out.print(avgPointList.get(i) + ",");
-        }
+//        for (int i = 0; i < listSize - 1; i++) {
+//            System.out.print(rowDataList.get(i).getTransmittance() + ",");
+//
+//        }
+//        System.out.print("\n");
+//        for (int i = 0; i < avgPointList.size() - 1; i++) {
+//
+//            System.out.print(avgPointList.get(i) + ",");
+//        }
 
     }
 

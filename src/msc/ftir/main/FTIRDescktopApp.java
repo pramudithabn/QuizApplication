@@ -38,10 +38,7 @@ import javax.swing.event.ChangeListener;
 import msc.ftir.util.FileType;
 import static msc.ftir.util.FileType.XLS;
 import static msc.ftir.util.FileType.XLXS;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -50,6 +47,9 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.jdbc.JDBCXYDataset;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
 
 /*
@@ -419,10 +419,6 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
 
     private void openUploadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openUploadButtonActionPerformed
 
-        
-        
-        
-        
         fileChooser();
 
         if (validateFileType()) {
@@ -440,7 +436,7 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Invalid file format!", "Error", JOptionPane.ERROR_MESSAGE);
 
         }
- /*
+        /*
         JFileChooser chooser = new JFileChooser();
         chooser.showOpenDialog(null);
         File dataFile = chooser.getSelectedFile();
@@ -516,7 +512,7 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
 
     private void button_specgenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_specgenActionPerformed
 
-        generate_spectrum();
+        generate_spectrum(specPanel);
 
 
     }//GEN-LAST:event_button_specgenActionPerformed
@@ -533,21 +529,20 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
 
         LineSmoother ls = new LineSmoother();
         ls.avgAlgorithm(sliderValue);
-        ls.loadAvgDataTable();
-        createSmoothed_spectrum();
+//        try {
+//            ls.loadAvgDataTable();
+//        } catch (SQLException ex) {
+//            Logger.getLogger(FTIRDescktopApp.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//        createSmoothed_spectrum();
+        createSmoothed_spectrum(ls.rowDataList, ls.avgPointList);
+//        generate_spectrum(rsPanel);
 
 
     }//GEN-LAST:event_smoothedSpecButtonActionPerformed
 
     private void sliderButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sliderButtonActionPerformed
-        fileChooser();
-        try {
-            readFile();
-        } catch (IOException ex) {
-            Logger.getLogger(FTIRDescktopApp.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException ex) {
-            Logger.getLogger(FTIRDescktopApp.class.getName()).log(Level.SEVERE, null, ex);
-        }
+       
 
     }//GEN-LAST:event_sliderButtonActionPerformed
 
@@ -555,11 +550,22 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         smoothningSlider.addChangeListener(new ChangeListener() {
 
             public void stateChanged(ChangeEvent e) {
+                
+                 JSlider source = (JSlider)e.getSource();
+                if(!source.getValueIsAdjusting())
+                {
+                    //textField.setText(String.valueOf(source.getValue()));
+                    int sliderValue = source.getValue();
+                    
+                    LineSmoother ls = new LineSmoother();
+                    ls.avgAlgorithm(sliderValue);
+                    createSmoothed_spectrum(ls.rowDataList, ls.avgPointList);
+                }
 
-                sliderValue = ((JSlider) e.getSource()).getValue();
-//                 System.out.println(sliderValue);
-
-//                createSmoothed_spectrum();
+//                sliderValue = ((JSlider) e.getSource()).getValue();
+//                LineSmoother ls = new LineSmoother();
+//                ls.avgAlgorithm(sliderValue);
+//                createSmoothed_spectrum(ls.rowDataList, ls.avgPointList);
             }
 
         });
@@ -633,7 +639,7 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
 
     }
 
-    private void generate_spectrum() {
+    private void generate_spectrum(JPanel jpanel) {
         try {
 
             String query1 = "select WAVENUMBER, TRANSMITTANCE from input_data";
@@ -646,7 +652,7 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
             spec.getXYPlot().setDomainGridlinesVisible(false);
 
             ChartPanel chartPanel = new ChartPanel(spec);
-            System.out.println(chartPanel.getPreferredSize());
+//            System.out.println(chartPanel.getPreferredSize());
             chartPanel.setPreferredSize(new Dimension(654, 350));
             chartPanel.setDomainZoomable(true);
 
@@ -656,11 +662,11 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
             range.setAutoRange(true);
             renderer = new BarRenderer();
 
-            specPanel.setLayout(new java.awt.BorderLayout());
-            specPanel.add(chartPanel, BorderLayout.CENTER);
-            specPanel.validate();
-            specPanel.setPreferredSize(new Dimension(654, 350));
-            specPanel.setVisible(true);
+            jpanel.setLayout(new java.awt.BorderLayout());
+            jpanel.add(chartPanel, BorderLayout.CENTER);
+            jpanel.validate();
+            jpanel.setPreferredSize(new Dimension(654, 350));
+            jpanel.setVisible(true);
 
             NumberAxis domain = (NumberAxis) plot.getDomainAxis();
             domain.setAutoRange(true);
@@ -993,11 +999,22 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         return spikeindex;
     }
 
-    public void createSmoothed_spectrum() {
+    private XYDataset createDataset(ArrayList<InputData> rowDataList, ArrayList<BigDecimal> averagedList) {
+        final XYSeries smoothedLine = new XYSeries("smoothedLine");
+        for (int i = 0; i < averagedList.size(); i++) {
+            smoothedLine.add(rowDataList.get(i).getWavenumber(), averagedList.get(i));
+        }
+        final XYSeriesCollection dataset = new XYSeriesCollection();
+        dataset.addSeries(smoothedLine);
+        return dataset;
+    }
+
+    public void createSmoothed_spectrum(ArrayList<InputData> rowDataList, ArrayList<BigDecimal> averagedList) {
         try {
 
-            String query2 = "select WAVENUMBER, TRANSMITTANCE from avg_data";
-            JDBCXYDataset dataset1 = new JDBCXYDataset(conn, query2);
+//            String query2 = "select WAVENUMBER, TRANSMITTANCE from avg_data";
+//            JDBCXYDataset dataset = new JDBCXYDataset(conn, query2);
+            XYDataset dataset1 = createDataset(rowDataList, averagedList);
 
             JFreeChart spec1 = ChartFactory.createXYLineChart("", "Wavenumber (cm-1)", "Transmittance %", dataset1, PlotOrientation.VERTICAL, false, true, true);
 
@@ -1006,7 +1023,7 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
             spec1.getXYPlot().setDomainGridlinesVisible(false);
 
             ChartPanel chartPanel = new ChartPanel(spec1);
-            System.out.println(chartPanel.getPreferredSize());
+
             chartPanel.setPreferredSize(new Dimension(654, 350));
             chartPanel.setDomainZoomable(true);
 
@@ -1032,59 +1049,7 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
 
     }
 
-    public void start(Stage primaryStage) {
-
-        Button someButton = new Button("Sample content");
-
-        StackPane stackPane = new StackPane();
-        stackPane.setPrefSize(500, 500);
-        stackPane.setStyle("-fx-background-color: blue;");
-
-        Region sliderContent = new Region();
-        sliderContent.setPrefWidth(200);
-        sliderContent.setStyle("-fx-background-color: red; -fx-border-color: orange; -fx-border-width: 5;");
-
-        Button expandButton = new Button(">");
-
-        HBox slider = new HBox();
-        slider.getChildren().addAll(sliderContent, expandButton);
-        slider.setAlignment(Pos.CENTER);
-        slider.setPrefWidth(Region.USE_COMPUTED_SIZE);
-        slider.setMaxWidth(Region.USE_PREF_SIZE);
-
-        // start out of view
-        slider.setTranslateX(-sliderContent.getPrefWidth());
-        StackPane.setAlignment(slider, Pos.CENTER_LEFT);
-
-        // animation for moving the slider
-        Timeline timeline = new Timeline(new KeyFrame(Duration.ZERO, new KeyValue(slider.translateXProperty(), -sliderContent.getPrefWidth())), new KeyFrame(Duration.millis(500), new KeyValue(slider.translateXProperty(), 0d)));
-
-        expandButton.setOnAction(evt -> {
-            // adjust the direction of play and start playing, if not already done
-            String text = expandButton.getText();
-            boolean playing = timeline.getStatus() == Animation.Status.RUNNING;
-            if (">".equals(text)) {
-                timeline.setRate(1);
-                if (!playing) {
-                    timeline.playFromStart();
-                }
-                expandButton.setText("<");
-            } else {
-                timeline.setRate(-1);
-                if (!playing) {
-                    timeline.playFrom("end");
-                }
-                expandButton.setText(">");
-            }
-        });
-
-        stackPane.getChildren().add(slider);
-
-        final Scene scene = new Scene(stackPane);
-
-        primaryStage.setScene(scene);
-        primaryStage.show();
-    }
+    
 
     private void clearTables() {
         int p = JOptionPane.showConfirmDialog(null, "Are you sure you want to clear data?", "Delete Confirmation", JOptionPane.YES_NO_OPTION);
@@ -1176,22 +1141,19 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
                     value = "\t"; //whitespace regex DPT
                 }
 
-//            String qry = "LOAD DATA LOCAL INFILE '" + fileName + "' INTO TABLE input_data FIELDS TERMINATED BY '" + value + "' LINES TERMINATED BY '\n' (wavenumber, transmittance);";
-            String qry ="LOAD DATA LOCAL INFILE '"+ fileName+"' INTO TABLE input_data FIELDS TERMINATED BY '"+value+"' LINES TERMINATED BY '\\r\\n' (wavenumber, transmittance)";
-           
+            String qry = "LOAD DATA LOCAL INFILE '" + fileName + "' INTO TABLE input_data FIELDS TERMINATED BY '" + value + "' LINES TERMINATED BY '\\r\\n' (wavenumber, transmittance)";
+
             String qrydel = "DELETE FROM input_data WHERE wavenumber = 0.00000000";
-            
+
             System.out.println(qry);
             pst = conn.prepareStatement(qry);
             pst.executeUpdate();
-            
+
             pst = conn.prepareStatement(qrydel);
             pst.executeUpdate();
-            
-            update_table();
-           
 
-//                LOAD DATA LOCAL INFILE 'D:\abcd.txt' INTO TABLE input_data FIELDS TERMINATED BY '\t' LINES TERMINATED BY '\r\n' (wavenumber, transmittance);
+            update_table();
+
         } catch (Exception e) {
             System.out.println(e);
         } finally {
