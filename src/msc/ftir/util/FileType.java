@@ -11,6 +11,6 @@ package msc.ftir.util;
  */
 public enum FileType {
     
-    CSV, TXT, XLS, XLXS;
+    CSV, TXT, XLS, XLXS, DPT;
     
 }

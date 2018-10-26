@@ -6,7 +6,11 @@ import java.awt.Dimension;
 import net.proteanit.sql.DbUtils;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
+import java.math.BigDecimal;
 import javax.swing.JFileChooser;
 import java.sql.*;
 import javax.swing.*;
@@ -15,6 +19,8 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.BarRenderer;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.*;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
@@ -27,7 +33,19 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.scene.layout.HBox;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import msc.ftir.util.FileType;
+import static msc.ftir.util.FileType.XLS;
+import static msc.ftir.util.FileType.XLXS;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
@@ -52,6 +70,8 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
     ArrayList<Integer> errorLine = new ArrayList<>();
     boolean dataformatvalidity;
     public Object[][] dataArray = new Object[1000][2];
+    private FileType fileType;
+    private int sliderValue;
 
     /**
      * Creates new form HelloWorld
@@ -60,15 +80,12 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
 
         initComponents();
 
-//        Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
-//        setSize(d.width, d.height-30);
         setExtendedState(getExtendedState() | JFrame.MAXIMIZED_BOTH);
         JFrame.setDefaultLookAndFeelDecorated(true);
 
         conn = Javaconnect.ConnecrDb();
-        update_table();
+        clearAll();
 
-//    
     }
 
     /**
@@ -83,29 +100,33 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         jDialog1 = new javax.swing.JDialog();
         specPanel = new javax.swing.JPanel();
         rsPanel = new javax.swing.JPanel();
-        jToolBar1 = new javax.swing.JToolBar();
-        clearButton = new javax.swing.JButton();
-        jButton1 = new javax.swing.JButton();
-        smoothedSpecButton = new javax.swing.JButton();
+        jToolBar = new javax.swing.JToolBar();
         button_specgen = new javax.swing.JButton();
+        smoothedSpecButton = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
+        clearButton = new javax.swing.JButton();
+        sliderButton = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
-        jTextField1 = new javax.swing.JTextField();
-        fileBrowserButton = new javax.swing.JButton();
+        filePathText = new javax.swing.JTextField();
+        openUploadButton = new javax.swing.JButton();
         tablePanel = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         dataTable = new javax.swing.JTable();
+        resultsPanel = new javax.swing.JPanel();
+        smoothningSlider = new javax.swing.JSlider();
+        jLabel1 = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
-        jMenu1 = new javax.swing.JMenu();
-        jMenuItem1 = new javax.swing.JMenuItem();
+        fileMenu = new javax.swing.JMenu();
+        newMenuItem = new javax.swing.JMenuItem();
         jSeparator1 = new javax.swing.JPopupMenu.Separator();
-        jMenuItem2 = new javax.swing.JMenuItem();
-        jMenuItem3 = new javax.swing.JMenuItem();
-        jMenuItem4 = new javax.swing.JMenuItem();
-        jMenu2 = new javax.swing.JMenu();
-        jMenu3 = new javax.swing.JMenu();
-        jMenu4 = new javax.swing.JMenu();
-        jMenu5 = new javax.swing.JMenu();
-        jMenu6 = new javax.swing.JMenu();
+        openMenuItem = new javax.swing.JMenuItem();
+        saveMenuItem = new javax.swing.JMenuItem();
+        printMenuItem = new javax.swing.JMenuItem();
+        editMenu = new javax.swing.JMenu();
+        displayMenu = new javax.swing.JMenu();
+        optionsMenu = new javax.swing.JMenu();
+        toolsMenu = new javax.swing.JMenu();
+        helpMenu = new javax.swing.JMenu();
 
         javax.swing.GroupLayout jDialog1Layout = new javax.swing.GroupLayout(jDialog1.getContentPane());
         jDialog1.getContentPane().setLayout(jDialog1Layout);
@@ -127,11 +148,11 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         specPanel.setLayout(specPanelLayout);
         specPanelLayout.setHorizontalGroup(
             specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+            .addGap(0, 642, Short.MAX_VALUE)
         );
         specPanelLayout.setVerticalGroup(
             specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 292, Short.MAX_VALUE)
+            .addGap(0, 314, Short.MAX_VALUE)
         );
 
         rsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "SMOOTHED SPECTRUM", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
@@ -140,41 +161,15 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         rsPanel.setLayout(rsPanelLayout);
         rsPanelLayout.setHorizontalGroup(
             rsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 642, Short.MAX_VALUE)
+            .addGap(0, 0, Short.MAX_VALUE)
         );
         rsPanelLayout.setVerticalGroup(
             rsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 329, Short.MAX_VALUE)
+            .addGap(0, 0, Short.MAX_VALUE)
         );
 
-        jToolBar1.setRollover(true);
-
-        clearButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/Broom_20px.png"))); // NOI18N
-        clearButton.setText("Clear");
-        clearButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                clearButtonActionPerformed(evt);
-            }
-        });
-        jToolBar1.add(clearButton);
-
-        jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/Sort Up_20px.png"))); // NOI18N
-        jButton1.setText("Peak");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-        jToolBar1.add(jButton1);
-
-        smoothedSpecButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/Plot_20px.png"))); // NOI18N
-        smoothedSpecButton.setText("Smooth");
-        smoothedSpecButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                smoothedSpecButtonActionPerformed(evt);
-            }
-        });
-        jToolBar1.add(smoothedSpecButton);
+        jToolBar.setRollover(true);
+        jToolBar.setFocusable(false);
 
         button_specgen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/Line Chart_20px.png"))); // NOI18N
         button_specgen.setText("Plot");
@@ -183,12 +178,52 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
                 button_specgenActionPerformed(evt);
             }
         });
-        jToolBar1.add(button_specgen);
+        jToolBar.add(button_specgen);
 
-        fileBrowserButton.setText("Open");
-        fileBrowserButton.addActionListener(new java.awt.event.ActionListener() {
+        smoothedSpecButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/Plot_20px.png"))); // NOI18N
+        smoothedSpecButton.setText("Smooth");
+        smoothedSpecButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                fileBrowserButtonActionPerformed(evt);
+                smoothedSpecButtonActionPerformed(evt);
+            }
+        });
+        jToolBar.add(smoothedSpecButton);
+
+        jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/Sort Up_20px.png"))); // NOI18N
+        jButton1.setText("Peak");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+        jToolBar.add(jButton1);
+
+        clearButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/Broom_20px.png"))); // NOI18N
+        clearButton.setText("Clear");
+        clearButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                clearButtonActionPerformed(evt);
+            }
+        });
+        jToolBar.add(clearButton);
+
+        sliderButton.setText("Load");
+        sliderButton.setFocusable(false);
+        sliderButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        sliderButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        sliderButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                sliderButtonActionPerformed(evt);
+            }
+        });
+        jToolBar.add(sliderButton);
+
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
+
+        openUploadButton.setText("Open");
+        openUploadButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                openUploadButtonActionPerformed(evt);
             }
         });
 
@@ -197,9 +232,10 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addComponent(jTextField1)
+                .addContainerGap()
+                .addComponent(filePathText)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(fileBrowserButton, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(openUploadButton, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -207,10 +243,12 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(fileBrowserButton, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(filePathText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(openUploadButton))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
+
+        tablePanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "RAW DATA", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
 
         dataTable.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         dataTable.setModel(new javax.swing.table.DefaultTableModel(
@@ -232,72 +270,112 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
             tablePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(tablePanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 501, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 489, Short.MAX_VALUE)
                 .addContainerGap())
         );
         tablePanelLayout.setVerticalGroup(
             tablePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(tablePanelLayout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, tablePanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 285, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
-        jMenu1.setText("File");
+        resultsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "RESULTS", javax.swing.border.TitledBorder.LEFT, javax.swing.border.TitledBorder.TOP, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
 
-        jMenuItem1.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
-        jMenuItem1.setText("New");
-        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem1ActionPerformed(evt);
+        smoothningSlider.setMajorTickSpacing(10);
+        smoothningSlider.setMinorTickSpacing(1);
+        smoothningSlider.setPaintLabels(true);
+        smoothningSlider.setPaintTicks(true);
+        smoothningSlider.setToolTipText("");
+        smoothningSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                smoothningSliderStateChanged(evt);
             }
         });
-        jMenu1.add(jMenuItem1);
-        jMenu1.add(jSeparator1);
 
-        jMenuItem2.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
-        jMenuItem2.setText("Open File");
-        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+        jLabel1.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel1.setText("Smoothness");
+
+        javax.swing.GroupLayout resultsPanelLayout = new javax.swing.GroupLayout(resultsPanel);
+        resultsPanel.setLayout(resultsPanelLayout);
+        resultsPanelLayout.setHorizontalGroup(
+            resultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, resultsPanelLayout.createSequentialGroup()
+                .addGap(44, 44, 44)
+                .addComponent(jLabel1)
+                .addGap(18, 18, 18)
+                .addComponent(smoothningSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 299, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        resultsPanelLayout.setVerticalGroup(
+            resultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(resultsPanelLayout.createSequentialGroup()
+                .addGroup(resultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(resultsPanelLayout.createSequentialGroup()
+                        .addGap(43, 43, 43)
+                        .addComponent(jLabel1))
+                    .addGroup(resultsPanelLayout.createSequentialGroup()
+                        .addGap(24, 24, 24)
+                        .addComponent(smoothningSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(175, Short.MAX_VALUE))
+        );
+
+        fileMenu.setText("File");
+
+        newMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
+        newMenuItem.setText("New");
+        newMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem2ActionPerformed(evt);
+                newMenuItemActionPerformed(evt);
             }
         });
-        jMenu1.add(jMenuItem2);
+        fileMenu.add(newMenuItem);
+        fileMenu.add(jSeparator1);
 
-        jMenuItem3.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
-        jMenuItem3.setText("Save");
-        jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
+        openMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
+        openMenuItem.setText("Open File");
+        openMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem3ActionPerformed(evt);
+                openMenuItemActionPerformed(evt);
             }
         });
-        jMenu1.add(jMenuItem3);
+        fileMenu.add(openMenuItem);
 
-        jMenuItem4.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, java.awt.event.InputEvent.CTRL_MASK));
-        jMenuItem4.setText("Print");
-        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
+        saveMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
+        saveMenuItem.setText("Save");
+        saveMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem4ActionPerformed(evt);
+                saveMenuItemActionPerformed(evt);
             }
         });
-        jMenu1.add(jMenuItem4);
+        fileMenu.add(saveMenuItem);
 
-        jMenuBar1.add(jMenu1);
+        printMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, java.awt.event.InputEvent.CTRL_MASK));
+        printMenuItem.setText("Print");
+        printMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                printMenuItemActionPerformed(evt);
+            }
+        });
+        fileMenu.add(printMenuItem);
 
-        jMenu2.setText("Edit");
-        jMenuBar1.add(jMenu2);
+        jMenuBar1.add(fileMenu);
 
-        jMenu3.setText("Display");
-        jMenuBar1.add(jMenu3);
+        editMenu.setText("Edit");
+        jMenuBar1.add(editMenu);
 
-        jMenu4.setText("Options");
-        jMenuBar1.add(jMenu4);
+        displayMenu.setText("Display");
+        jMenuBar1.add(displayMenu);
 
-        jMenu5.setText("Tools");
-        jMenuBar1.add(jMenu5);
+        optionsMenu.setText("Options");
+        jMenuBar1.add(optionsMenu);
 
-        jMenu6.setText("Help");
-        jMenuBar1.add(jMenu6);
+        toolsMenu.setText("Tools");
+        jMenuBar1.add(toolsMenu);
+
+        helpMenu.setText("Help");
+        jMenuBar1.add(helpMenu);
 
         setJMenuBar(jMenuBar1);
 
@@ -308,48 +386,86 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(tablePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(rsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(specPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addContainerGap())
-                    .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addComponent(tablePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(resultsPanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(specPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(rsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
+            .addComponent(jToolBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jToolBar, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(resultsPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(specPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(specPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(rsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(tablePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(tablePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(rsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void fileBrowserButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileBrowserButtonActionPerformed
+    private void openUploadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openUploadButtonActionPerformed
 
+        
+        
+        
+        
+        fileChooser();
+
+        if (validateFileType()) {
+
+            try {
+                readFile();
+            } catch (IOException ex) {
+                Logger.getLogger(FTIRDescktopApp.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (SQLException ex) {
+                Logger.getLogger(FTIRDescktopApp.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+        } else {
+
+            JOptionPane.showMessageDialog(null, "Invalid file format!", "Error", JOptionPane.ERROR_MESSAGE);
+
+        }
+ /*
         JFileChooser chooser = new JFileChooser();
         chooser.showOpenDialog(null);
         File dataFile = chooser.getSelectedFile();
         fileName = dataFile.getAbsolutePath();
-        jTextField1.setText(fileName);
-
-        if (fileName == null) {
-            JOptionPane.showMessageDialog(null, "Please select a file!", "Error", JOptionPane.ERROR_MESSAGE);
-        }
+        filePathText.setText(fileName);
 
         if (validateFileType()) {
+
+            upload();
+            update_table();
+
+        } else {
+
+            JOptionPane.showMessageDialog(null, "Invalid file format!", "Error", JOptionPane.ERROR_MESSAGE);
+
+        }
+
+       
+        if (fileName == null) {
+            JOptionPane.showMessageDialog(null, "Please select a file!", "Error", JOptionPane.ERROR_MESSAGE);
+       } 
+
+        if (validateFileType()) {
+
+            upload();
 
             vaidateDataFormat();
 
@@ -369,73 +485,33 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
 
                 }
 
-            }
-
-            update_table();
+            } 
+                     update_table();
 
         } else {
 
             JOptionPane.showMessageDialog(null, "Invalid file format!", "Error", JOptionPane.ERROR_MESSAGE);
 
-        }
+        }*/
 
+    }//GEN-LAST:event_openUploadButtonActionPerformed
 
-    }//GEN-LAST:event_fileBrowserButtonActionPerformed
-
-    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+    private void newMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newMenuItemActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jMenuItem1ActionPerformed
+    }//GEN-LAST:event_newMenuItemActionPerformed
 
-    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
+    private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jMenuItem2ActionPerformed
+    }//GEN-LAST:event_openMenuItemActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-//        vaidateDataFormat();
-//        validateFileType();
-//        arrayFill();
+
         calDerivatives();
 
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void clearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearButtonActionPerformed
-        int p = JOptionPane.showConfirmDialog(null, "Are you sure you want to clear data?", "Delete Confirmation", JOptionPane.YES_NO_OPTION);
-        PreparedStatement pst1 = null;
-        PreparedStatement pst2 = null;
-
-        if (p == 0) {
-            String sql1 = "delete from input_data";
-            String sql2 = "delete from avg_data";
-
-            try {
-                pst1 = conn.prepareStatement(sql1);
-                pst1.execute();
-
-                pst2 = conn.prepareStatement(sql2);
-                pst2.execute();
-                JOptionPane.showMessageDialog(null, "Delete Successful!");
-
-                specPanel.removeAll();
-                specPanel.revalidate();
-                specPanel.repaint();
-
-                rsPanel.removeAll();
-                rsPanel.revalidate();
-                rsPanel.repaint();
-
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(null, e);
-            } finally {
-                try {
-                   pst1.close();
-                   pst2.close();
-                } catch (Exception e) {
-                    JOptionPane.showMessageDialog(null, e);
-                }
-            }
-            update_table();
-
-        }
+        clearTables();
     }//GEN-LAST:event_clearButtonActionPerformed
 
     private void button_specgenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_specgenActionPerformed
@@ -445,21 +521,50 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
 
     }//GEN-LAST:event_button_specgenActionPerformed
 
-    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
+    private void saveMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveMenuItemActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jMenuItem3ActionPerformed
+    }//GEN-LAST:event_saveMenuItemActionPerformed
 
-    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
+    private void printMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_printMenuItemActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jMenuItem4ActionPerformed
+    }//GEN-LAST:event_printMenuItemActionPerformed
 
     private void smoothedSpecButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_smoothedSpecButtonActionPerformed
-        LineSmoother ls = new LineSmoother();
 
+        LineSmoother ls = new LineSmoother();
+        ls.avgAlgorithm(sliderValue);
+        ls.loadAvgDataTable();
         createSmoothed_spectrum();
 
 
     }//GEN-LAST:event_smoothedSpecButtonActionPerformed
+
+    private void sliderButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sliderButtonActionPerformed
+        fileChooser();
+        try {
+            readFile();
+        } catch (IOException ex) {
+            Logger.getLogger(FTIRDescktopApp.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            Logger.getLogger(FTIRDescktopApp.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }//GEN-LAST:event_sliderButtonActionPerformed
+
+    private void smoothningSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_smoothningSliderStateChanged
+        smoothningSlider.addChangeListener(new ChangeListener() {
+
+            public void stateChanged(ChangeEvent e) {
+
+                sliderValue = ((JSlider) e.getSource()).getValue();
+//                 System.out.println(sliderValue);
+
+//                createSmoothed_spectrum();
+            }
+
+        });
+
+    }//GEN-LAST:event_smoothningSliderStateChanged
 
     /**
      * @param args the command line arguments
@@ -477,29 +582,33 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
     private javax.swing.JButton button_specgen;
     private javax.swing.JButton clearButton;
     public static javax.swing.JTable dataTable;
-    private javax.swing.JButton fileBrowserButton;
+    private javax.swing.JMenu displayMenu;
+    private javax.swing.JMenu editMenu;
+    private javax.swing.JMenu fileMenu;
+    private javax.swing.JTextField filePathText;
+    private javax.swing.JMenu helpMenu;
     private javax.swing.JButton jButton1;
     private javax.swing.JDialog jDialog1;
-    private javax.swing.JMenu jMenu1;
-    private javax.swing.JMenu jMenu2;
-    private javax.swing.JMenu jMenu3;
-    private javax.swing.JMenu jMenu4;
-    private javax.swing.JMenu jMenu5;
-    private javax.swing.JMenu jMenu6;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JMenuItem jMenuItem1;
-    private javax.swing.JMenuItem jMenuItem2;
-    private javax.swing.JMenuItem jMenuItem3;
-    private javax.swing.JMenuItem jMenuItem4;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JToolBar jToolBar1;
+    private javax.swing.JToolBar jToolBar;
+    private javax.swing.JMenuItem newMenuItem;
+    private javax.swing.JMenuItem openMenuItem;
+    private javax.swing.JButton openUploadButton;
+    private javax.swing.JMenu optionsMenu;
+    private javax.swing.JMenuItem printMenuItem;
+    private javax.swing.JPanel resultsPanel;
     public javax.swing.JPanel rsPanel;
+    private javax.swing.JMenuItem saveMenuItem;
+    private javax.swing.JButton sliderButton;
     private javax.swing.JButton smoothedSpecButton;
+    private javax.swing.JSlider smoothningSlider;
     private javax.swing.JPanel specPanel;
     private javax.swing.JPanel tablePanel;
+    private javax.swing.JMenu toolsMenu;
     // End of variables declaration//GEN-END:variables
 
     private void update_table() {
@@ -566,8 +675,9 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         JFileChooser chooser = new JFileChooser();
         chooser.showOpenDialog(null);
         File dataFile = chooser.getSelectedFile();
-        fileName = dataFile.getAbsolutePath();
-        jTextField1.setText(fileName);
+//        fileName = dataFile.getAbsolutePath();
+        fileName = dataFile.getAbsolutePath().replace("\\", "/");
+        filePathText.setText(fileName);
 
     }
 
@@ -593,9 +703,9 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
                 Pattern input_pattern = Pattern.compile(point);
                 regrexMatch = input_pattern.matcher(line);
 //                System.out.println("aaa" + line + "aaa");
-                System.out.println(line);
+//                System.out.println(line);
                 boolean m = regrexMatch.matches();
-                System.out.println(m);
+//                System.out.println(m);
 
                 if (!regrexMatch.matches()) {
                     ++invalid_input;
@@ -613,9 +723,8 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
 
 //            System.out.println(invalid_input + " invalid inputs found at line #" + Arrays.toString(errorLine.toArray()));
             System.out.println("Invalid inputs found!");
-            System.out.println("valid inputs = " + valid_input);
-            System.out.println("Total Number of lines = " + lineNumber);
-
+//            System.out.println("valid inputs = " + valid_input);
+//            System.out.println("Total Number of lines = " + lineNumber);
             if (invalid_input > 0) {
 
 //                String msg = "Data format errors are found at line #" + Arrays.toString(errorLine.toArray());
@@ -628,7 +737,7 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
                 dataformatvalidity = false;
 
             } else {
-                System.out.println("Data format is correct!");
+//                System.out.println("Data format is correct!");
                 dataformatvalidity = true;
 
             }
@@ -642,7 +751,26 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
 
     private boolean validateFileType() {
 
-        String filetype = "(?:[\\w]\\:|\\\\)(\\\\[a-zA-Z_\\-\\s0-9\\.]+)+\\.(txt|csv|dpt|doc|docx|xls|xlsx)";
+        if (fileName.toLowerCase().endsWith("txt")) {
+            fileType = FileType.TXT;
+            return true;
+        } else if (fileName.toLowerCase().endsWith("csv")) {
+            fileType = FileType.CSV;
+            return true;
+        } else if (fileName.toLowerCase().endsWith("xls")) {
+            fileType = FileType.XLS;
+            return true;
+        } else if (fileName.toLowerCase().endsWith("dpt")) {
+            fileType = FileType.DPT;
+            return true;
+        } else {
+//            JOptionPane.showMessageDialog(null, "Please select a valid file!", "Error", JOptionPane.ERROR_MESSAGE);
+//                System.exit(0);
+
+            return false;
+        }
+        /*
+        String filetype = "(?:[\\w]\\:|\\\\)(\\\\[a-zA-Z_\\-\\s0-9\\.]+)+\\.(txt|CSV|csv|dpt|xls|xlsx)";
         Pattern fileExtPattern = Pattern.compile(filetype);
 
         Matcher mtch = fileExtPattern.matcher(fileName);
@@ -654,7 +782,7 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
 
         } else {
             return false;
-        }
+        }*/
     }
 
     private void upload() {
@@ -665,23 +793,17 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
             BufferedReader br = new BufferedReader(new FileReader(fileName));
             String line;
             String[] value = null;
-            StringBuilder sb = new StringBuilder();
+            int numLines = 0;
 
-            FileType fileType = FileType.TXT;
-
-            if (fileName.toLowerCase().endsWith("txt")) {
-                fileType = FileType.TXT;
-            } else if (fileName.toLowerCase().endsWith("csv")) {
-                fileType = FileType.CSV;
-            } else {
-                System.err.println("Wrong File Extension");
-                System.exit(0);
-            }
-
-            while ((line = br.readLine()) != null && line.startsWith(commentChar)) {
-                //skip
-            }
+//            && line.matches("\\d{3,4}\\.\\d{5,6}(\\,|[ \\t])\\d{1,2}\\.\\d{5,6}(\\,|[ \\t]*)")
+//              && line.matches("[^#].*")
             while ((line = br.readLine()) != null) {
+
+                if (line.startsWith(commentChar) | line.equals("")) {
+                    //skip lines starting with # and empty lines
+                    System.out.println(line + " Skipped");
+                    continue;
+                }
 
                 switch (fileType) {
                     case CSV:
@@ -690,12 +812,48 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
                     case TXT:
                         value = line.split("\\s+");
                         break;
+                    case DPT:
+                        value = line.split("\\s+"); //whitespace regex DPT
+                }
+                if (fileType == XLS | fileType == XLXS) {
+                    try {
+
+                        FileInputStream input = new FileInputStream(fileName);
+                        POIFSFileSystem fs = new POIFSFileSystem(input);
+                        Workbook workbook;
+                        workbook = WorkbookFactory.create(fs);
+                        Sheet sheet = workbook.getSheetAt(0);
+                        Row row;
+                        for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                            row = (Row) sheet.getRow(i);
+                            String name = row.getCell(0).getStringCellValue();
+                            String add = row.getCell(1).getStringCellValue();
+
+                            double wavenumber = row.getCell(2).getNumericCellValue();
+
+                            double transmittance = row.getCell(3).getNumericCellValue();
+
+                            String sql = "INSERT INTO input_data (wavenumber, transmittance) VALUES('" + wavenumber + "','" + transmittance + "')";
+                            pst = conn.prepareStatement(sql);
+                            pst.execute();
+                            System.out.println("Import rows " + i);
+                        }
+                        conn.commit();
+                        pst.close();
+                        conn.close();
+                        input.close();
+                        System.out.println("Successfully imported excel to mysql table");
+                    } catch (Exception e) {
+                    }
+
                 }
 
                 //sb.append("insert into input_data (WAVENUMBER , TRANSMITTANCE)" + "values ('" + value[0].trim() + "','" + value[1].trim() + "');");
                 String sql = "insert into input_data (WAVENUMBER , TRANSMITTANCE)" + "values ('" + value[0].trim() + "','" + value[1].trim() + "')";
                 pst = conn.prepareStatement(sql);
                 pst.executeUpdate();
+                numLines++;
+
                 /*
                 //Make sure the line is not null, not empty, and contains valid data format
                 if (!line.equals("") && line.matches("\\d{3,4}\\.\\d{5,6}(\\,|[ \\t])\\d{1,2}\\.\\d{5,6}(\\,|[ \\t]*)")) {
@@ -734,7 +892,8 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
                 }
                  */
             }
-
+            System.out.print("Uploaded\t");
+            System.out.println(numLines + " lines");
             /*pst = conn.prepareStatement();
             pst.addBatch(sb.toString());
             pst.executeUpdate();
@@ -742,7 +901,13 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
             br.close();
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, e);
+            System.out.println(e);
+        } finally {
+            try {
+                pst.close();
+            } catch (Exception e) {
+                System.out.println(e);
+            }
         }
 
     }
@@ -862,9 +1027,9 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
             domain.setInverted(true);
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, e);
+            System.out.println(e);
         }
-        
+
     }
 
     public void start(Stage primaryStage) {
@@ -919,6 +1084,121 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
 
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    private void clearTables() {
+        int p = JOptionPane.showConfirmDialog(null, "Are you sure you want to clear data?", "Delete Confirmation", JOptionPane.YES_NO_OPTION);
+        PreparedStatement pst1 = null;
+
+        if (p == 0) {
+            String sql1 = "delete from input_data";
+
+            try {
+                pst1 = conn.prepareStatement(sql1);
+                pst1.execute();
+
+                JOptionPane.showMessageDialog(null, "Delete Successful!");
+
+                specPanel.removeAll();
+                specPanel.revalidate();
+                specPanel.repaint();
+
+                rsPanel.removeAll();
+                rsPanel.revalidate();
+                rsPanel.repaint();
+
+            } catch (Exception e) {
+                System.out.println(e);
+            } finally {
+                try {
+                    pst1.close();
+
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+            }
+            update_table();
+
+        }
+    }
+
+    private void clearAll() {
+
+        PreparedStatement pst2 = null;
+        String sql1 = "delete from input_data";
+        String sql2 = "delete from avg_data";
+
+        try {
+            pst = conn.prepareStatement(sql1);
+            pst.execute();
+
+            pst2 = conn.prepareStatement(sql2);
+            pst2.execute();
+
+            specPanel.removeAll();
+            specPanel.revalidate();
+            specPanel.repaint();
+
+            rsPanel.removeAll();
+            rsPanel.revalidate();
+            rsPanel.repaint();
+
+        } catch (Exception e) {
+            System.out.println(e);
+        } finally {
+            try {
+                pst.close();
+                pst2.close();
+
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        }
+        System.out.println("All cleared");
+        update_table();
+
+    }
+
+    public void readFile() throws FileNotFoundException, IOException, SQLException {
+        String value = " ";
+        validateFileType();
+
+        try {
+
+            switch (fileType) {
+                case CSV:
+                    value = ",";
+                    break;
+                case TXT:
+                    value = " ";
+                    break;
+                case DPT:
+                    value = "\t"; //whitespace regex DPT
+                }
+
+//            String qry = "LOAD DATA LOCAL INFILE '" + fileName + "' INTO TABLE input_data FIELDS TERMINATED BY '" + value + "' LINES TERMINATED BY '\n' (wavenumber, transmittance);";
+            String qry ="LOAD DATA LOCAL INFILE '"+ fileName+"' INTO TABLE input_data FIELDS TERMINATED BY '"+value+"' LINES TERMINATED BY '\\r\\n' (wavenumber, transmittance)";
+           
+            String qrydel = "DELETE FROM input_data WHERE wavenumber = 0.00000000";
+            
+            System.out.println(qry);
+            pst = conn.prepareStatement(qry);
+            pst.executeUpdate();
+            
+            pst = conn.prepareStatement(qrydel);
+            pst.executeUpdate();
+            
+            update_table();
+           
+
+//                LOAD DATA LOCAL INFILE 'D:\abcd.txt' INTO TABLE input_data FIELDS TERMINATED BY '\t' LINES TERMINATED BY '\r\n' (wavenumber, transmittance);
+        } catch (Exception e) {
+            System.out.println(e);
+        } finally {
+
+            pst.close();
+        }
+
     }
 
 }
