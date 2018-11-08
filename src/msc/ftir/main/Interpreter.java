@@ -11,7 +11,7 @@ import java.util.ArrayList;
  *
  * @author Pramuditha Buddhini
  */
-public class Interpreter extends FTIRDescktopApp {
+public class Interpreter extends MainWindow {
 
     private ArrayList dataList = new ArrayList();
     

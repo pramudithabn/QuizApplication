@@ -14,8 +14,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.StringJoiner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -45,7 +44,6 @@ public class LineSmoother {
         conn = Javaconnect.ConnecrDb();
 
         qdata();
-
 
     }
 
@@ -77,7 +75,6 @@ public class LineSmoother {
 
         listSize = rowDataList.size();
 
-
         return rowDataList;
 
     }
@@ -107,10 +104,7 @@ public class LineSmoother {
         avgPointList.add(last);
         System.out.println("Point avg calculated ");
 
-
     }
-
-
 
     public void loadAvgDataTable() throws SQLException {
 
@@ -118,7 +112,7 @@ public class LineSmoother {
 
             Statement statement = conn.createStatement();
             String qry = "insert into avg_data (WAVENUMBER , TRANSMITTANCE) values (?,?)";
-           
+
             try {
                 pst = conn.prepareStatement(qry);
 
@@ -169,8 +163,6 @@ public class LineSmoother {
         minScale = gapDifferenceList.get(minIndex);
         maxScale = gapDifferenceList.get(maxIndex);
 
-
-
         smoothingFactor = ((maxScale.subtract(minScale)).divide(BigDecimal.valueOf(100))).multiply(BigDecimal.valueOf(scale));
 
         System.out.println("\n Smoothing Factor " + smoothingFactor);
@@ -188,11 +180,9 @@ public class LineSmoother {
 
             res = (gapDifferenceList.get(rindex - 1)).compareTo(smoothingFactor);
 
-
             if (res == 1 | res == 0) {
                 avgPointList.add(rowDataList.get(rindex - 1).getTransmittance());
 
-                
             } else if (res == -1) {
 
                 BigDecimal n1 = rowDataList.get(rindex - 1).getTransmittance();
@@ -221,6 +211,39 @@ public class LineSmoother {
 //
 //            System.out.print(avgPointList.get(i) + ",");
 //        }
+    }
+
+    public void updateSmoothedValue() {
+
+        String fullarrays = "";
+        for (int i = 0; i < avgPointList.size(); i++) {
+            String twoarrays = "(" + rowDataList.get(i).getWavenumber() + " , " + avgPointList.get(i) + ")";
+            fullarrays = fullarrays + twoarrays + ",";
+        }
+        fullarrays = fullarrays.substring(0, fullarrays.length() - 1);
+
+//        System.out.println(fullarrays);
+        String sql = "INSERT INTO avg_data (wavenumber,transmittance)  VALUES " + fullarrays;
+
+        System.out.println(sql);
+
+        ResultSet rs = null;
+        PreparedStatement pst = null;
+
+        try {
+            pst = conn.prepareStatement(sql);
+            pst.executeUpdate();
+
+        } catch (Exception e) {
+            System.out.println(e);
+        } finally {
+            try {
+                rs.close();
+                pst.close();
+            } catch (Exception e) {
+
+            }
+        }
 
     }
 

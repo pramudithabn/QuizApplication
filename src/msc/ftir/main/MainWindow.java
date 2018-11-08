@@ -1,8 +1,9 @@
 package msc.ftir.main;
 
 import java.awt.BorderLayout;
-import javafx.scene.control.Button;
 import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import net.proteanit.sql.DbUtils;
 import java.io.BufferedReader;
 import java.io.File;
@@ -22,17 +23,6 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.*;
-import javafx.animation.Animation;
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.animation.Timeline;
-import javafx.geometry.Pos;
-import javafx.scene.Scene;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-import javafx.stage.Stage;
-import javafx.util.Duration;
-import javafx.scene.layout.HBox;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import msc.ftir.util.FileType;
@@ -61,7 +51,7 @@ import org.jfree.data.xy.XYSeriesCollection;
  *
  * @author Pramuditha Buddhini
  */
-public class FTIRDescktopApp extends javax.swing.JFrame {
+public class MainWindow extends javax.swing.JFrame {
 
     Connection conn = null;
     ResultSet rs = null;
@@ -76,7 +66,7 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
     /**
      * Creates new form HelloWorld
      */
-    public FTIRDescktopApp() {
+    public MainWindow() {
 
         initComponents();
 
@@ -85,6 +75,20 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
 
         conn = Javaconnect.ConnecrDb();
         clearAll();
+
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                int confirmed = JOptionPane.showConfirmDialog(null,
+                        "Are you sure you want to exit?", "Exit",
+                        JOptionPane.YES_NO_OPTION);
+
+                if (confirmed == JOptionPane.YES_OPTION) {
+                    dispose();
+                } else {
+                    setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+                }
+            }
+        });
 
     }
 
@@ -103,7 +107,7 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         jToolBar = new javax.swing.JToolBar();
         button_specgen = new javax.swing.JButton();
         smoothedSpecButton = new javax.swing.JButton();
-        jButton1 = new javax.swing.JButton();
+        peakButton = new javax.swing.JButton();
         clearButton = new javax.swing.JButton();
         sliderButton = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
@@ -189,14 +193,14 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         });
         jToolBar.add(smoothedSpecButton);
 
-        jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/Sort Up_20px.png"))); // NOI18N
-        jButton1.setText("Peak");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        peakButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/Sort Up_20px.png"))); // NOI18N
+        peakButton.setText("Peak");
+        peakButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                peakButtonActionPerformed(evt);
             }
         });
-        jToolBar.add(jButton1);
+        jToolBar.add(peakButton);
 
         clearButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/Broom_20px.png"))); // NOI18N
         clearButton.setText("Clear");
@@ -284,9 +288,8 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         resultsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "RESULTS", javax.swing.border.TitledBorder.LEFT, javax.swing.border.TitledBorder.TOP, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
 
         smoothningSlider.setMajorTickSpacing(10);
-        smoothningSlider.setMinorTickSpacing(1);
+        smoothningSlider.setMinorTickSpacing(5);
         smoothningSlider.setPaintLabels(true);
-        smoothningSlider.setPaintTicks(true);
         smoothningSlider.setToolTipText("");
         smoothningSlider.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
@@ -301,12 +304,12 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         resultsPanel.setLayout(resultsPanelLayout);
         resultsPanelLayout.setHorizontalGroup(
             resultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, resultsPanelLayout.createSequentialGroup()
+            .addGroup(resultsPanelLayout.createSequentialGroup()
                 .addGap(44, 44, 44)
                 .addComponent(jLabel1)
-                .addGap(18, 18, 18)
-                .addComponent(smoothningSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 299, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(smoothningSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 353, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
         resultsPanelLayout.setVerticalGroup(
             resultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -316,9 +319,9 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
                         .addGap(43, 43, 43)
                         .addComponent(jLabel1))
                     .addGroup(resultsPanelLayout.createSequentialGroup()
-                        .addGap(24, 24, 24)
+                        .addGap(28, 28, 28)
                         .addComponent(smoothningSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(175, Short.MAX_VALUE))
+                .addContainerGap(171, Short.MAX_VALUE))
         );
 
         fileMenu.setText("File");
@@ -426,9 +429,9 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
             try {
                 readFile();
             } catch (IOException ex) {
-                Logger.getLogger(FTIRDescktopApp.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
             } catch (SQLException ex) {
-                Logger.getLogger(FTIRDescktopApp.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
             }
 
         } else {
@@ -500,11 +503,13 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_openMenuItemActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void peakButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_peakButtonActionPerformed
+        MinimaLocator ml = new MinimaLocator();
+        ml.findMinima();
+        show_peaks(tablePanel, ml.createDataset());
 
-        calDerivatives();
 
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_peakButtonActionPerformed
 
     private void clearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearButtonActionPerformed
         clearTables();
@@ -526,23 +531,23 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
     }//GEN-LAST:event_printMenuItemActionPerformed
 
     private void smoothedSpecButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_smoothedSpecButtonActionPerformed
-
         LineSmoother ls = new LineSmoother();
+
         ls.avgAlgorithm(sliderValue);
 //        try {
 //            ls.loadAvgDataTable();
 //        } catch (SQLException ex) {
-//            Logger.getLogger(FTIRDescktopApp.class.getName()).log(Level.SEVERE, null, ex);
+//            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
 //        }
 //        createSmoothed_spectrum();
         createSmoothed_spectrum(ls.rowDataList, ls.avgPointList);
 //        generate_spectrum(rsPanel);
-
+        ls.updateSmoothedValue();
 
     }//GEN-LAST:event_smoothedSpecButtonActionPerformed
 
     private void sliderButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sliderButtonActionPerformed
-       
+
 
     }//GEN-LAST:event_sliderButtonActionPerformed
 
@@ -550,13 +555,12 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         smoothningSlider.addChangeListener(new ChangeListener() {
 
             public void stateChanged(ChangeEvent e) {
-                
-                 JSlider source = (JSlider)e.getSource();
-                if(!source.getValueIsAdjusting())
-                {
+
+                JSlider source = (JSlider) e.getSource();
+                if (!source.getValueIsAdjusting()) {
                     //textField.setText(String.valueOf(source.getValue()));
                     int sliderValue = source.getValue();
-                    
+
                     LineSmoother ls = new LineSmoother();
                     ls.avgAlgorithm(sliderValue);
                     createSmoothed_spectrum(ls.rowDataList, ls.avgPointList);
@@ -579,7 +583,7 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
 
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new FTIRDescktopApp().setVisible(true);
+                new MainWindow().setVisible(true);
             }
         });
     }
@@ -593,7 +597,6 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
     private javax.swing.JMenu fileMenu;
     private javax.swing.JTextField filePathText;
     private javax.swing.JMenu helpMenu;
-    private javax.swing.JButton jButton1;
     private javax.swing.JDialog jDialog1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JMenuBar jMenuBar1;
@@ -605,6 +608,7 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
     private javax.swing.JMenuItem openMenuItem;
     private javax.swing.JButton openUploadButton;
     private javax.swing.JMenu optionsMenu;
+    private javax.swing.JButton peakButton;
     private javax.swing.JMenuItem printMenuItem;
     private javax.swing.JPanel resultsPanel;
     public javax.swing.JPanel rsPanel;
@@ -646,6 +650,41 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
             JDBCXYDataset dataset = new JDBCXYDataset(conn, query1);
 
             JFreeChart spec = ChartFactory.createXYLineChart("", "Wavenumber (cm-1)", "Transmittance %", dataset, PlotOrientation.VERTICAL, false, true, true);
+
+            spec.setBorderVisible(false);
+
+            spec.getXYPlot().setDomainGridlinesVisible(false);
+
+            ChartPanel chartPanel = new ChartPanel(spec);
+//            System.out.println(chartPanel.getPreferredSize());
+            chartPanel.setPreferredSize(new Dimension(654, 350));
+            chartPanel.setDomainZoomable(true);
+
+            BarRenderer renderer = null;
+            XYPlot plot = spec.getXYPlot();
+            NumberAxis range = (NumberAxis) plot.getRangeAxis();
+            range.setAutoRange(true);
+            renderer = new BarRenderer();
+
+            jpanel.setLayout(new java.awt.BorderLayout());
+            jpanel.add(chartPanel, BorderLayout.CENTER);
+            jpanel.validate();
+            jpanel.setPreferredSize(new Dimension(654, 350));
+            jpanel.setVisible(true);
+
+            NumberAxis domain = (NumberAxis) plot.getDomainAxis();
+            domain.setAutoRange(true);
+            domain.setInverted(true);
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e);
+        }
+    }
+
+    private void show_peaks(JPanel jpanel, XYDataset dataset) {
+        try {
+
+            JFreeChart spec = ChartFactory.createScatterPlot("", "Wavenumber (cm-1)", "Transmittance %", dataset, PlotOrientation.VERTICAL, false, true, true);
 
             spec.setBorderVisible(false);
 
@@ -939,6 +978,7 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
 
     }
 
+    /*
     public void calDerivatives() {
         long[] dArray = new long[dataTable.getRowCount()];
 //        double[] arrDouble = new double[stringArray.length];
@@ -998,7 +1038,7 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         }
         return spikeindex;
     }
-
+     */
     private XYDataset createDataset(ArrayList<InputData> rowDataList, ArrayList<BigDecimal> averagedList) {
         final XYSeries smoothedLine = new XYSeries("smoothedLine");
         for (int i = 0; i < averagedList.size(); i++) {
@@ -1048,8 +1088,6 @@ public class FTIRDescktopApp extends javax.swing.JFrame {
         }
 
     }
-
-    
 
     private void clearTables() {
         int p = JOptionPane.showConfirmDialog(null, "Are you sure you want to clear data?", "Delete Confirmation", JOptionPane.YES_NO_OPTION);
