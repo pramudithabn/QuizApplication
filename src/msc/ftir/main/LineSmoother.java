@@ -27,8 +27,8 @@ import org.jfree.chart.ChartPanel;
  */
 public class LineSmoother {
 
-    ArrayList<InputData> rowDataList = new ArrayList<InputData>();
-    ArrayList<BigDecimal> avgPointList = new ArrayList<BigDecimal>();
+    static ArrayList<InputData> rowDataList = new ArrayList<InputData>();
+    static ArrayList<BigDecimal> avgPointList = new ArrayList<BigDecimal>();
     ArrayList<BigDecimal> gapDifferenceList = new ArrayList<BigDecimal>();
     Connection conn = null;
     PreparedStatement pst = null;
@@ -39,13 +39,22 @@ public class LineSmoother {
     BigDecimal minScale;
     BigDecimal maxScale;
     BigDecimal smoothingFactor;
+    private static volatile LineSmoother instance;
 
     public LineSmoother() {
         conn = Javaconnect.ConnecrDb();
+      
 
         qdata();
+        
 
     }
+    public static LineSmoother getInstance() {
+   
+       instance = new LineSmoother();
+    
+    return instance;
+}
 
     public ArrayList<InputData> qdata() {
 

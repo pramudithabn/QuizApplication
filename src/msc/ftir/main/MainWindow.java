@@ -23,6 +23,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.*;
+import javafx.scene.paint.Color;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import msc.ftir.util.FileType;
@@ -35,7 +36,10 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.jdbc.JDBCXYDataset;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
@@ -119,6 +123,7 @@ public class MainWindow extends javax.swing.JFrame {
         resultsPanel = new javax.swing.JPanel();
         smoothningSlider = new javax.swing.JSlider();
         jLabel1 = new javax.swing.JLabel();
+        comPanel = new javax.swing.JPanel();
         jMenuBar1 = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         newMenuItem = new javax.swing.JMenuItem();
@@ -156,7 +161,7 @@ public class MainWindow extends javax.swing.JFrame {
         );
         specPanelLayout.setVerticalGroup(
             specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 314, Short.MAX_VALUE)
+            .addGap(0, 322, Short.MAX_VALUE)
         );
 
         rsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "SMOOTHED SPECTRUM", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
@@ -169,7 +174,7 @@ public class MainWindow extends javax.swing.JFrame {
         );
         rsPanelLayout.setVerticalGroup(
             rsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+            .addGap(0, 299, Short.MAX_VALUE)
         );
 
         jToolBar.setRollover(true);
@@ -252,7 +257,7 @@ public class MainWindow extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        tablePanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "RAW DATA", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
+        tablePanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "DATA ", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
 
         dataTable.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         dataTable.setModel(new javax.swing.table.DefaultTableModel(
@@ -281,11 +286,11 @@ public class MainWindow extends javax.swing.JFrame {
             tablePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, tablePanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 285, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
-        resultsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "RESULTS", javax.swing.border.TitledBorder.LEFT, javax.swing.border.TitledBorder.TOP, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
+        resultsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "SETTINGS", javax.swing.border.TitledBorder.LEFT, javax.swing.border.TitledBorder.TOP, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
 
         smoothningSlider.setMajorTickSpacing(10);
         smoothningSlider.setMinorTickSpacing(5);
@@ -305,23 +310,31 @@ public class MainWindow extends javax.swing.JFrame {
         resultsPanelLayout.setHorizontalGroup(
             resultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(resultsPanelLayout.createSequentialGroup()
-                .addGap(44, 44, 44)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
                 .addComponent(smoothningSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 353, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         resultsPanelLayout.setVerticalGroup(
             resultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(smoothningSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addGroup(resultsPanelLayout.createSequentialGroup()
-                .addGroup(resultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(resultsPanelLayout.createSequentialGroup()
-                        .addGap(43, 43, 43)
-                        .addComponent(jLabel1))
-                    .addGroup(resultsPanelLayout.createSequentialGroup()
-                        .addGap(28, 28, 28)
-                        .addComponent(smoothningSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(171, Short.MAX_VALUE))
+                .addContainerGap()
+                .addComponent(jLabel1))
+        );
+
+        comPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "BANDS", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
+
+        javax.swing.GroupLayout comPanelLayout = new javax.swing.GroupLayout(comPanel);
+        comPanel.setLayout(comPanelLayout);
+        comPanelLayout.setHorizontalGroup(
+            comPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+        comPanelLayout.setVerticalGroup(
+            comPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 315, Short.MAX_VALUE)
         );
 
         fileMenu.setText("File");
@@ -389,8 +402,9 @@ public class MainWindow extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(tablePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(resultsPanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(tablePanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(comPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
@@ -404,16 +418,19 @@ public class MainWindow extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addComponent(jToolBar, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(specPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(rsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(resultsPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(specPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(tablePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(rsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(resultsPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tablePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
         );
 
@@ -506,13 +523,14 @@ public class MainWindow extends javax.swing.JFrame {
     private void peakButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_peakButtonActionPerformed
         MinimaLocator ml = new MinimaLocator();
         ml.findMinima();
-        show_peaks(tablePanel, ml.createDataset());
-
-
+        ml.cal_Minimas(0);
+//        show_peaks(tablePanel, ml.createDataset());
+        LineSmoother ls = LineSmoother.getInstance();
+        createDuel(ml.createDataset(), createDataset(ls.rowDataList, ls.avgPointList));
     }//GEN-LAST:event_peakButtonActionPerformed
 
     private void clearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearButtonActionPerformed
-        clearTables();
+        clearAll();
     }//GEN-LAST:event_clearButtonActionPerformed
 
     private void button_specgenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_specgenActionPerformed
@@ -534,14 +552,9 @@ public class MainWindow extends javax.swing.JFrame {
         LineSmoother ls = new LineSmoother();
 
         ls.avgAlgorithm(sliderValue);
-//        try {
-//            ls.loadAvgDataTable();
-//        } catch (SQLException ex) {
-//            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//        createSmoothed_spectrum();
+
         createSmoothed_spectrum(ls.rowDataList, ls.avgPointList);
-//        generate_spectrum(rsPanel);
+
         ls.updateSmoothedValue();
 
     }//GEN-LAST:event_smoothedSpecButtonActionPerformed
@@ -591,6 +604,7 @@ public class MainWindow extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton button_specgen;
     private javax.swing.JButton clearButton;
+    private javax.swing.JPanel comPanel;
     public static javax.swing.JTable dataTable;
     private javax.swing.JMenu displayMenu;
     private javax.swing.JMenu editMenu;
@@ -653,7 +667,7 @@ public class MainWindow extends javax.swing.JFrame {
 
             spec.setBorderVisible(false);
 
-            spec.getXYPlot().setDomainGridlinesVisible(false);
+            spec.getXYPlot().setDomainGridlinesVisible(true);
 
             ChartPanel chartPanel = new ChartPanel(spec);
 //            System.out.println(chartPanel.getPreferredSize());
@@ -1060,7 +1074,7 @@ public class MainWindow extends javax.swing.JFrame {
 
             spec1.setBorderVisible(false);
 
-            spec1.getXYPlot().setDomainGridlinesVisible(false);
+            spec1.getXYPlot().setDomainGridlinesVisible(true);
 
             ChartPanel chartPanel = new ChartPanel(spec1);
 
@@ -1199,6 +1213,54 @@ public class MainWindow extends javax.swing.JFrame {
             pst.close();
         }
 
+    }
+
+    public void createDuel(XYDataset set1, XYDataset set2) {
+
+        XYPlot plot = new XYPlot();
+
+        XYDataset collection1 = set1;
+        XYItemRenderer renderer1 = new XYLineAndShapeRenderer(false, true);	// Shapes only
+        ValueAxis domain1 = new NumberAxis("Wavenumber");
+        ValueAxis range1 = new NumberAxis("Transmittance");
+        domain1.setAutoRange(true);
+        domain1.setInverted(true);
+
+        
+
+        plot.setDataset(0, collection1);
+        plot.setRenderer(0, renderer1);
+        plot.setDomainAxis(0, domain1);
+        plot.setRangeAxis(0, range1);
+
+        XYDataset collection2 = set2;
+        XYItemRenderer renderer2 = new XYLineAndShapeRenderer(true, true);	// Lines only
+        ValueAxis domain2 = new NumberAxis("");
+        ValueAxis range2 = new NumberAxis("");
+
+        plot.setDataset(1, collection2);
+        plot.setRenderer(1, renderer2);
+        plot.setDomainAxis(1, domain2);
+        plot.setRangeAxis(1, range2);
+
+        plot.mapDatasetToDomainAxis(0, 1);
+        plot.mapDatasetToRangeAxis(0, 1);
+
+        domain2.setAutoRange(true);
+        domain2.setInverted(true);
+        domain2.setVisible(false);
+        range2.setVisible(false);
+
+        plot.mapDatasetToDomainAxis(1, 1);
+        plot.mapDatasetToRangeAxis(1, 1);
+
+        JFreeChart chart = new JFreeChart("", JFreeChart.DEFAULT_TITLE_FONT, plot, true);
+        ChartPanel chartPanel = new ChartPanel(chart);
+        comPanel.setLayout(new java.awt.BorderLayout());
+        comPanel.add(chartPanel, BorderLayout.CENTER);
+        comPanel.validate();
+        comPanel.setPreferredSize(new Dimension(654, 350));
+        comPanel.setVisible(true);
     }
 
 }
