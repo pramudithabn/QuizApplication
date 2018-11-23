@@ -28,7 +28,7 @@ import org.jfree.chart.ChartPanel;
 public class LineSmoother {
 
     static ArrayList<InputData> rowDataList = new ArrayList<InputData>();
-    static ArrayList<BigDecimal> avgPointList = new ArrayList<BigDecimal>();
+    public static ArrayList<BigDecimal> avgPointList = new ArrayList<BigDecimal>();
     ArrayList<BigDecimal> gapDifferenceList = new ArrayList<BigDecimal>();
     Connection conn = null;
     PreparedStatement pst = null;
@@ -83,7 +83,7 @@ public class LineSmoother {
         }
 
         listSize = rowDataList.size();
-
+//        System.out.println("Original size = "+listSize);
         return rowDataList;
 
     }
@@ -111,7 +111,8 @@ public class LineSmoother {
 
         }
         avgPointList.add(last);
-        System.out.println("Point avg calculated ");
+//        System.out.println("Avg list size = "+avgPointList.size());
+//        System.out.println("Point avg calculated ");
 
     }
 
@@ -150,6 +151,8 @@ public class LineSmoother {
     }
 
     public void avgAlgorithm(int scale) {
+        
+        avgPointList.clear();
 
         BigDecimal diff = null;
 
@@ -174,7 +177,7 @@ public class LineSmoother {
 
         smoothingFactor = ((maxScale.subtract(minScale)).divide(BigDecimal.valueOf(100))).multiply(BigDecimal.valueOf(scale));
 
-        System.out.println("\n Smoothing Factor " + smoothingFactor);
+//        System.out.println("\n Smoothing Factor " + smoothingFactor);
 
         BigDecimal sum = null;
         BigDecimal avg = null;
@@ -205,11 +208,13 @@ public class LineSmoother {
                 avgPointList.add(avg);
 //                System.out.println("added");
 
+
             }
 
         }
         avgPointList.add(last);
-        System.out.println("Point avg calculated ");
+//         System.out.println("Avg list size = "+avgPointList.size());
+//        System.out.println("Point avg calculated ");
 
 //        for (int i = 0; i < listSize - 1; i++) {
 //            System.out.print(rowDataList.get(i).getTransmittance() + ",");
@@ -234,7 +239,7 @@ public class LineSmoother {
 //        System.out.println(fullarrays);
         String sql = "INSERT INTO avg_data (wavenumber,transmittance)  VALUES " + fullarrays;
 
-        System.out.println(sql);
+//        System.out.println(sql);
 
         ResultSet rs = null;
         PreparedStatement pst = null;

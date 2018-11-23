@@ -1,7 +1,10 @@
 package msc.ftir.main;
 
+import java.awt.event.*;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import net.proteanit.sql.DbUtils;
@@ -66,7 +69,9 @@ public class MainWindow extends javax.swing.JFrame {
     public Object[][] dataArray = new Object[1000][2];
     private FileType fileType;
     private int sliderValue;
-
+    private static String lastVisitedDirectory = System.getProperty("user.home");
+    private String algorithm = null;
+    SlidingAvgSmooth ls = new SlidingAvgSmooth();
     /**
      * Creates new form HelloWorld
      */
@@ -120,10 +125,18 @@ public class MainWindow extends javax.swing.JFrame {
         tablePanel = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         dataTable = new javax.swing.JTable();
+        comPanel = new javax.swing.JPanel();
+        jTabbedPane1 = new javax.swing.JTabbedPane();
         resultsPanel = new javax.swing.JPanel();
         smoothningSlider = new javax.swing.JSlider();
         jLabel1 = new javax.swing.JLabel();
-        comPanel = new javax.swing.JPanel();
+        jLabel2 = new javax.swing.JLabel();
+        smAlgoCombo = new javax.swing.JComboBox<>();
+        jLabel3 = new javax.swing.JLabel();
+        smoothButton = new javax.swing.JButton();
+        pointNumberSpinner = new javax.swing.JSpinner();
+        filterPassLabel = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         newMenuItem = new javax.swing.JMenuItem();
@@ -161,7 +174,7 @@ public class MainWindow extends javax.swing.JFrame {
         );
         specPanelLayout.setVerticalGroup(
             specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 322, Short.MAX_VALUE)
+            .addGap(0, 283, Short.MAX_VALUE)
         );
 
         rsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "SMOOTHED SPECTRUM", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
@@ -174,7 +187,7 @@ public class MainWindow extends javax.swing.JFrame {
         );
         rsPanelLayout.setVerticalGroup(
             rsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 299, Short.MAX_VALUE)
+            .addGap(0, 0, Short.MAX_VALUE)
         );
 
         jToolBar.setRollover(true);
@@ -279,49 +292,15 @@ public class MainWindow extends javax.swing.JFrame {
             tablePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(tablePanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 489, Short.MAX_VALUE)
+                .addComponent(jScrollPane1)
                 .addContainerGap())
         );
         tablePanelLayout.setVerticalGroup(
             tablePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, tablePanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 107, Short.MAX_VALUE)
                 .addContainerGap())
-        );
-
-        resultsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "SETTINGS", javax.swing.border.TitledBorder.LEFT, javax.swing.border.TitledBorder.TOP, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
-
-        smoothningSlider.setMajorTickSpacing(10);
-        smoothningSlider.setMinorTickSpacing(5);
-        smoothningSlider.setPaintLabels(true);
-        smoothningSlider.setToolTipText("");
-        smoothningSlider.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                smoothningSliderStateChanged(evt);
-            }
-        });
-
-        jLabel1.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        jLabel1.setText("Smoothness");
-
-        javax.swing.GroupLayout resultsPanelLayout = new javax.swing.GroupLayout(resultsPanel);
-        resultsPanel.setLayout(resultsPanelLayout);
-        resultsPanelLayout.setHorizontalGroup(
-            resultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(resultsPanelLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel1)
-                .addGap(18, 18, 18)
-                .addComponent(smoothningSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 353, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-        );
-        resultsPanelLayout.setVerticalGroup(
-            resultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(smoothningSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addGroup(resultsPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel1))
         );
 
         comPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "BANDS", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
@@ -334,8 +313,110 @@ public class MainWindow extends javax.swing.JFrame {
         );
         comPanelLayout.setVerticalGroup(
             comPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 315, Short.MAX_VALUE)
+            .addGap(0, 183, Short.MAX_VALUE)
         );
+
+        jTabbedPane1.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jTabbedPane1.setName(""); // NOI18N
+
+        smoothningSlider.setMajorTickSpacing(10);
+        smoothningSlider.setPaintLabels(true);
+        smoothningSlider.setPaintTicks(true);
+        smoothningSlider.setToolTipText("");
+        smoothningSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                smoothningSliderStateChanged(evt);
+            }
+        });
+
+        jLabel1.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel1.setText("Smoothness");
+
+        jLabel2.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel2.setText("Smoothing Algorithm");
+
+        smAlgoCombo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Select...", "Unweighted Sliding Average ", "Triangular Smoothing", "Savitzky-Golay", "a" }));
+        smAlgoCombo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                smAlgoComboActionPerformed(evt);
+            }
+        });
+
+        jLabel3.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel3.setText("Points ");
+
+        smoothButton.setText("Iterate");
+        smoothButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                smoothButtonActionPerformed(evt);
+            }
+        });
+
+        pointNumberSpinner.setModel(new javax.swing.SpinnerListModel(new String[] {"3", "5", "7", "9"}));
+        pointNumberSpinner.setEnabled(false);
+
+        filterPassLabel.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+
+        jLabel5.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel5.setText("Filter Passes ");
+
+        javax.swing.GroupLayout resultsPanelLayout = new javax.swing.GroupLayout(resultsPanel);
+        resultsPanel.setLayout(resultsPanelLayout);
+        resultsPanelLayout.setHorizontalGroup(
+            resultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(resultsPanelLayout.createSequentialGroup()
+                .addContainerGap(59, Short.MAX_VALUE)
+                .addGroup(resultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(resultsPanelLayout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addGap(18, 18, 18)
+                        .addComponent(smoothningSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 353, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(resultsPanelLayout.createSequentialGroup()
+                        .addGroup(resultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel2)
+                            .addComponent(jLabel3)
+                            .addComponent(jLabel5))
+                        .addGap(33, 33, 33)
+                        .addGroup(resultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(pointNumberSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(resultsPanelLayout.createSequentialGroup()
+                                .addGroup(resultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(filterPassLabel, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(smAlgoCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(smoothButton)
+                                .addGap(30, 30, 30)))))
+                .addContainerGap())
+        );
+        resultsPanelLayout.setVerticalGroup(
+            resultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(resultsPanelLayout.createSequentialGroup()
+                .addGroup(resultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(smoothningSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(resultsPanelLayout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jLabel1)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(resultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(smAlgoCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(resultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3)
+                    .addComponent(pointNumberSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(resultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(resultsPanelLayout.createSequentialGroup()
+                        .addGap(18, 18, 18)
+                        .addComponent(smoothButton))
+                    .addGroup(resultsPanelLayout.createSequentialGroup()
+                        .addGap(24, 24, 24)
+                        .addGroup(resultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel5)
+                            .addComponent(filterPassLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("Smoothing", resultsPanel);
 
         fileMenu.setText("File");
 
@@ -402,10 +483,10 @@ public class MainWindow extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(resultsPanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(tablePanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(comPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jTabbedPane1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(specPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -426,12 +507,12 @@ public class MainWindow extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(resultsPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jTabbedPane1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(comPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(tablePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                .addContainerGap())
+                        .addComponent(tablePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(0, 0, 0))
         );
 
         pack();
@@ -565,18 +646,18 @@ public class MainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_sliderButtonActionPerformed
 
     private void smoothningSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_smoothningSliderStateChanged
+
         smoothningSlider.addChangeListener(new ChangeListener() {
 
             public void stateChanged(ChangeEvent e) {
-
-                JSlider source = (JSlider) e.getSource();
-                if (!source.getValueIsAdjusting()) {
-                    //textField.setText(String.valueOf(source.getValue()));
-                    int sliderValue = source.getValue();
-
+//                smoothningSlider = (JSlider) e.getSource();
+                if (!(smoothningSlider.getValueIsAdjusting())) {
+                    int sliderValue = smoothningSlider.getValue();
+                    System.out.println(sliderValue);
                     LineSmoother ls = new LineSmoother();
                     ls.avgAlgorithm(sliderValue);
                     createSmoothed_spectrum(ls.rowDataList, ls.avgPointList);
+//                    ls.updateSmoothedValue();
                 }
 
 //                sliderValue = ((JSlider) e.getSource()).getValue();
@@ -588,6 +669,33 @@ public class MainWindow extends javax.swing.JFrame {
         });
 
     }//GEN-LAST:event_smoothningSliderStateChanged
+
+    private void smAlgoComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_smAlgoComboActionPerformed
+
+        smAlgoCombo.addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent e) {
+                System.out.println("In");
+                if (smAlgoCombo.getSelectedItem().equals("Unweighted Sliding Average")) {
+                }
+
+                System.out.println("enabled");
+            }
+        });
+
+    }//GEN-LAST:event_smAlgoComboActionPerformed
+
+    private void smoothButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_smoothButtonActionPerformed
+        if (smAlgoCombo.getSelectedItem().toString().equalsIgnoreCase("Unweighted Sliding Average ")) {
+            
+
+
+                ls.cal_9point_avg();
+
+
+            filterPassLabel.setText(Integer.toString(ls.count));
+            createSmoothed_spectrum(ls.originalPoints, ls.smoothedPoints);
+        }
+    }//GEN-LAST:event_smoothButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -610,24 +718,32 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JMenu editMenu;
     private javax.swing.JMenu fileMenu;
     private javax.swing.JTextField filePathText;
+    private javax.swing.JLabel filterPassLabel;
     private javax.swing.JMenu helpMenu;
     private javax.swing.JDialog jDialog1;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
+    private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JToolBar jToolBar;
     private javax.swing.JMenuItem newMenuItem;
     private javax.swing.JMenuItem openMenuItem;
     private javax.swing.JButton openUploadButton;
     private javax.swing.JMenu optionsMenu;
     private javax.swing.JButton peakButton;
+    private javax.swing.JSpinner pointNumberSpinner;
     private javax.swing.JMenuItem printMenuItem;
     private javax.swing.JPanel resultsPanel;
     public javax.swing.JPanel rsPanel;
     private javax.swing.JMenuItem saveMenuItem;
     private javax.swing.JButton sliderButton;
+    private javax.swing.JComboBox<String> smAlgoCombo;
+    private javax.swing.JButton smoothButton;
     private javax.swing.JButton smoothedSpecButton;
     private javax.swing.JSlider smoothningSlider;
     private javax.swing.JPanel specPanel;
@@ -731,8 +847,19 @@ public class MainWindow extends javax.swing.JFrame {
     }
 
     private void fileChooser() {
-        JFileChooser chooser = new JFileChooser();
-        chooser.showOpenDialog(null);
+
+//        JFileChooser chooser = new JFileChooser();
+        JFileChooser chooser = Utils.getFileChooser();
+        int returnVal = chooser.showOpenDialog(this);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            Utils.setLastDir(chooser.getSelectedFile());
+
+        }
+//        File workingDirectory = new File(System.getProperty("user.home"));
+//        chooser.setCurrentDirectory(workingDirectory);
+
+//        chooser.setSelectedFile(workingDirectory);
+//        chooser.showOpenDialog(null);
         File dataFile = chooser.getSelectedFile();
 //        fileName = dataFile.getAbsolutePath();
         fileName = dataFile.getAbsolutePath().replace("\\", "/");
@@ -903,6 +1030,7 @@ public class MainWindow extends javax.swing.JFrame {
                         input.close();
                         System.out.println("Successfully imported excel to mysql table");
                     } catch (Exception e) {
+                        e.printStackTrace();
                     }
 
                 }
@@ -1065,7 +1193,9 @@ public class MainWindow extends javax.swing.JFrame {
 
     public void createSmoothed_spectrum(ArrayList<InputData> rowDataList, ArrayList<BigDecimal> averagedList) {
         try {
-
+                rsPanel.removeAll();
+                rsPanel.revalidate();
+                rsPanel.repaint();
 //            String query2 = "select WAVENUMBER, TRANSMITTANCE from avg_data";
 //            JDBCXYDataset dataset = new JDBCXYDataset(conn, query2);
             XYDataset dataset1 = createDataset(rowDataList, averagedList);
@@ -1160,6 +1290,10 @@ public class MainWindow extends javax.swing.JFrame {
             rsPanel.revalidate();
             rsPanel.repaint();
 
+            comPanel.removeAll();
+            comPanel.revalidate();
+            comPanel.repaint();
+
         } catch (Exception e) {
             System.out.println(e);
         } finally {
@@ -1197,7 +1331,7 @@ public class MainWindow extends javax.swing.JFrame {
 
             String qrydel = "DELETE FROM input_data WHERE wavenumber = 0.00000000";
 
-            System.out.println(qry);
+//            System.out.println(qry);
             pst = conn.prepareStatement(qry);
             pst.executeUpdate();
 
@@ -1225,8 +1359,6 @@ public class MainWindow extends javax.swing.JFrame {
         ValueAxis range1 = new NumberAxis("Transmittance");
         domain1.setAutoRange(true);
         domain1.setInverted(true);
-
-        
 
         plot.setDataset(0, collection1);
         plot.setRenderer(0, renderer1);

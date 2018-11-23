@@ -28,6 +28,15 @@ public class InputData {
          
             
             }
+    
+     public InputData( BigDecimal w, BigDecimal t){
+           
+            this.wavenumber = w;
+            this.transmittance = t;
+         
+            
+            }
+
 
     
 

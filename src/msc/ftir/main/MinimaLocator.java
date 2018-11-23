@@ -6,14 +6,11 @@
 package msc.ftir.main;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
@@ -22,15 +19,6 @@ import javax.swing.JOptionPane;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.ValueAxis;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.category.BarRenderer;
-import org.jfree.chart.renderer.xy.XYItemRenderer;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 
 /**
  *
@@ -161,13 +149,13 @@ public class MinimaLocator {
 //            minima.put(this.avgList.get(avgList.size() - 1).getWavenumber(), this.avgList.get(avgList.size() - 1).getTransmittance());
 //        }
 
-        for (BigDecimal name : minima.keySet()) {
-
-            String key = name.toString();
-            String value = minima.get(name).toString();
-            System.out.println(key + " " + value);
-
-        }
+//        for (BigDecimal name : minima.keySet()) {
+//
+//            String key = name.toString();
+//            String value = minima.get(name).toString();
+//            System.out.println(key + " " + value);
+//
+//        }
         System.out.println("Size " + minima.size());
 
     }
