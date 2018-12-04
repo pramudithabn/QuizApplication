@@ -42,13 +42,23 @@ public class TriangularSmooth implements SlidingWindow {
     }
 
 //    static {
-//
 //        instance = new TriangularSmooth();
-//
 //    }
-
-    private void destroy() {
+    public void reset() {
         instance = null;
+    }
+
+    public void reverse() {
+
+        reset();
+        count = 0;
+        qdata();//qdata()
+        smoothedPoints.clear();//empty smmothed points array
+        emptyTable();//empty table
+
+        for (int i = 0; i < originalPoints.size(); i++) {
+            smoothedPoints.add(originalPoints.get(i).getTransmittance());
+        }
     }
 
     public static TriangularSmooth getInstance() {
@@ -201,6 +211,27 @@ public class TriangularSmooth implements SlidingWindow {
     @Override
     public void cal_9point_avg() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    private void emptyTable() {
+
+        String sql1 = "delete from avg_data";
+        try {
+            pst = conn.prepareStatement(sql1);
+            pst.executeUpdate();
+
+        } catch (Exception e) {
+            System.out.println(e);
+        } finally {
+            try {
+                pst.close();
+
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        }
+        System.out.println("Table cleared");
+
     }
 
 }

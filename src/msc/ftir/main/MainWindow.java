@@ -330,7 +330,6 @@ public class MainWindow extends javax.swing.JFrame {
         pointsbuttonGroup.add(threepoints);
         threepoints.setSelected(true);
         threepoints.setText("3 - points");
-        threepoints.setEnabled(false);
 
         pointsbuttonGroup.add(fivepoints);
         fivepoints.setText("5 - points");
@@ -648,25 +647,17 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void clearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearButtonActionPerformed
         clearAll();
-
     }//GEN-LAST:event_clearButtonActionPerformed
 
     private void button_specgenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_specgenActionPerformed
-
         generate_spectrum(specPanel, "input_data");
-
-
     }//GEN-LAST:event_button_specgenActionPerformed
 
     private void smoothedSpecButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_smoothedSpecButtonActionPerformed
         DefaultSmooth ls = new DefaultSmooth();
-
         ls.general_avg_algorithm_3point(sliderValue);
-
         createSmoothed_spectrum(ls.rowDataList, ls.avgPointList);
-
         ls.updateSmoothedValue();
-
     }//GEN-LAST:event_smoothedSpecButtonActionPerformed
 
     private void sliderButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sliderButtonActionPerformed
@@ -784,9 +775,7 @@ public class MainWindow extends javax.swing.JFrame {
             inputvalidity = false;
             val_label2.setText("* Invalid!");
         }
-
         return inputvalidity;
-
     }
     private void smAlgoComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_smAlgoComboActionPerformed
 
@@ -824,7 +813,7 @@ public class MainWindow extends javax.swing.JFrame {
 
                 threepoints.setEnabled(false);
                 fivepoints.setSelected(true);
-                fivepoints.setEnabled(false);
+                fivepoints.setEnabled(true);
                 sevenpoints.setEnabled(false);
                 ninepoints.setEnabled(false);
 
@@ -852,14 +841,10 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void iterateButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_iterateButtonActionPerformed
         if (smAlgoCombo.getSelectedItem().toString().equalsIgnoreCase("Unweighted Sliding Average ")) {
-
             ls = SlidingAvgSmooth.getInstance();
-
             ls.cal_5point_avg();
-
             filterPassLabel.setText(Integer.toString(ls.count));
             createSmoothed_spectrum(ls.originalPoints, ls.smoothedPoints);
-
         }
     }//GEN-LAST:event_iterateButtonActionPerformed
 
@@ -870,19 +855,25 @@ public class MainWindow extends javax.swing.JFrame {
 //            ls.reverse();
 //            createSmoothed_spectrum(ls.originalPoints, ls.smoothedPoints);
 //            smoothningSlider.setValue(1);
-//            
-//
-//        }
+
         filterPassLabel.setText(null);
         smoothningSlider.setValue(1);
         sliderValuesList.clear();
         sliderValuesList.add(0);
-        
+
         if (smAlgoCombo.getSelectedItem().toString().equalsIgnoreCase("Unweighted Sliding Average ")) {
             ls = SlidingAvgSmooth.getInstance();
             ls.reverse();
             createSmoothed_spectrum(ls.originalPoints, ls.smoothedPoints);
-
+        }
+        if (smAlgoCombo.getSelectedItem().toString().equalsIgnoreCase("Triangular Smoothing")) {
+            tri = TriangularSmooth.getInstance();
+            tri.reverse();
+            createSmoothed_spectrum(tri.originalPoints, tri.smoothedPoints);
+        }
+        if (smAlgoCombo.getSelectedItem().toString().equalsIgnoreCase("Default")) {
+            ds = DefaultSmooth.getInstance();
+            ds.reverse();
         }
 
 

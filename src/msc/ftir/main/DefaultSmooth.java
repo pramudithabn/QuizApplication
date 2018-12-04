@@ -42,18 +42,21 @@ public class DefaultSmooth {
 
     public DefaultSmooth() {
         conn = Javaconnect.ConnecrDb();
-      
 
         qdata();
-        
 
     }
+
     public static DefaultSmooth getInstance() {
-   
-       instance = new DefaultSmooth();
-    
-    return instance;
-}
+
+        instance = new DefaultSmooth();
+
+        return instance;
+    }
+
+    public void reset() {
+        instance = null;
+    }
 
     public ArrayList<InputData> qdata() {
 
@@ -151,7 +154,7 @@ public class DefaultSmooth {
     }
 
     public void general_avg_algorithm_3point(int scale) {
-        
+
         avgPointList.clear();
 
         BigDecimal diff = null;
@@ -178,7 +181,6 @@ public class DefaultSmooth {
         smoothingFactor = ((maxScale.subtract(minScale)).divide(BigDecimal.valueOf(100))).multiply(BigDecimal.valueOf(scale));
 
 //        System.out.println("\n Smoothing Factor " + smoothingFactor);
-
         BigDecimal sum = null;
         BigDecimal avg = null;
 
@@ -208,7 +210,6 @@ public class DefaultSmooth {
                 avgPointList.add(avg);
 //                System.out.println("added");
 
-
             }
 
         }
@@ -230,7 +231,6 @@ public class DefaultSmooth {
         String sql = "INSERT INTO avg_data (wavenumber,transmittance)  VALUES " + fullarrays;
 
 //        System.out.println(sql);
-
         ResultSet rs = null;
         PreparedStatement pst = null;
 
@@ -248,6 +248,39 @@ public class DefaultSmooth {
 
             }
         }
+
+    }
+
+    public void reverse() {
+
+        reset();
+        qdata();//qdata()
+        avgPointList.clear();//empty smmothed points array
+        emptyTable();//empty table
+
+        for (int i = 0; i < rowDataList.size(); i++) {
+            avgPointList.add(rowDataList.get(i).getTransmittance());
+        }
+    }
+
+    private void emptyTable() {
+
+        String sql1 = "delete from avg_data";
+        try {
+            pst = conn.prepareStatement(sql1);
+            pst.executeUpdate();
+
+        } catch (Exception e) {
+            System.out.println(e);
+        } finally {
+            try {
+                pst.close();
+
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        }
+        System.out.println("Table cleared");
 
     }
 

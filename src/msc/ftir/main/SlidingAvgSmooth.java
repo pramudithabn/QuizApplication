@@ -44,9 +44,7 @@ public class SlidingAvgSmooth implements SlidingWindow{
     }
 
 //    static {
-//
 //        instance = new SlidingAvgSmooth();
-//
 //    }
 
     public void reset() {
@@ -341,13 +339,13 @@ public class SlidingAvgSmooth implements SlidingWindow{
     }
 
     public void reverse() {
-        
+
         reset();
         count = 0;
         qdata();//qdata()
         smoothedPoints.clear();//empty smmothed points array
         emptyTable();//empty table
-        
+
         for (int i = 0; i < originalPoints.size(); i++) {
             smoothedPoints.add(originalPoints.get(i).getTransmittance());
         }
