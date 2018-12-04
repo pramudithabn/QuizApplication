@@ -14,7 +14,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.StringJoiner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -25,7 +24,7 @@ import org.jfree.chart.ChartPanel;
  *
  * @author Pramuditha Buddhini
  */
-public class LineSmoother {
+public class DefaultSmooth {
 
     static ArrayList<InputData> rowDataList = new ArrayList<InputData>();
     public static ArrayList<BigDecimal> avgPointList = new ArrayList<BigDecimal>();
@@ -39,9 +38,9 @@ public class LineSmoother {
     BigDecimal minScale;
     BigDecimal maxScale;
     BigDecimal smoothingFactor;
-    private static volatile LineSmoother instance;
+    private static volatile DefaultSmooth instance;
 
-    public LineSmoother() {
+    public DefaultSmooth() {
         conn = Javaconnect.ConnecrDb();
       
 
@@ -49,9 +48,9 @@ public class LineSmoother {
         
 
     }
-    public static LineSmoother getInstance() {
+    public static DefaultSmooth getInstance() {
    
-       instance = new LineSmoother();
+       instance = new DefaultSmooth();
     
     return instance;
 }
@@ -66,6 +65,7 @@ public class LineSmoother {
             pst = conn.prepareStatement(sql);
             rs = pst.executeQuery();
             InputData d;
+            rowDataList.clear();
             while (rs.next()) {
                 d = new InputData(rs.getInt("ID"), rs.getBigDecimal("WAVENUMBER"), rs.getBigDecimal("TRANSMITTANCE"));
                 rowDataList.add(d);
@@ -150,7 +150,7 @@ public class LineSmoother {
 
     }
 
-    public void avgAlgorithm(int scale) {
+    public void general_avg_algorithm_3point(int scale) {
         
         avgPointList.clear();
 
@@ -213,18 +213,8 @@ public class LineSmoother {
 
         }
         avgPointList.add(last);
-//         System.out.println("Avg list size = "+avgPointList.size());
-//        System.out.println("Point avg calculated ");
+        updateSmoothedValue();
 
-//        for (int i = 0; i < listSize - 1; i++) {
-//            System.out.print(rowDataList.get(i).getTransmittance() + ",");
-//
-//        }
-//        System.out.print("\n");
-//        for (int i = 0; i < avgPointList.size() - 1; i++) {
-//
-//            System.out.print(avgPointList.get(i) + ",");
-//        }
     }
 
     public void updateSmoothedValue() {
