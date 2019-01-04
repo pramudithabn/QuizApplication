@@ -45,7 +45,6 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import java.util.Properties;
 
-
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -75,6 +74,23 @@ public class MainWindow extends javax.swing.JFrame {
     private boolean inputvalidity = true;
     private Properties p = new Properties();
     public static int points = 0;
+
+    public static int getPoints() {
+        return points;
+    }
+
+    public static void setPoints(int points) {
+        MainWindow.points = points;
+    }
+    private static int algorithm = 1;
+
+    public static int getAlgorithm() {
+        return algorithm;
+    }
+
+    public void setAlgorithm(int algorithm) {
+        this.algorithm = algorithm;
+    }
 
     /**
      * Creates new form HelloWorld
@@ -123,7 +139,8 @@ public class MainWindow extends javax.swing.JFrame {
         smoothedSpecButton = new javax.swing.JButton();
         peakButton = new javax.swing.JButton();
         clearButton = new javax.swing.JButton();
-        sliderButton = new javax.swing.JButton();
+        loadButton = new javax.swing.JButton();
+        pointMarkers = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         filePathText = new javax.swing.JTextField();
         openButton = new javax.swing.JButton();
@@ -241,16 +258,27 @@ public class MainWindow extends javax.swing.JFrame {
         });
         jToolBar.add(clearButton);
 
-        sliderButton.setText("Load");
-        sliderButton.setFocusable(false);
-        sliderButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        sliderButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        sliderButton.addActionListener(new java.awt.event.ActionListener() {
+        loadButton.setText("Load");
+        loadButton.setFocusable(false);
+        loadButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        loadButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        loadButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                sliderButtonActionPerformed(evt);
+                loadButtonActionPerformed(evt);
             }
         });
-        jToolBar.add(sliderButton);
+        jToolBar.add(loadButton);
+
+        pointMarkers.setText("MarkerPoints");
+        pointMarkers.setFocusable(false);
+        pointMarkers.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        pointMarkers.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        pointMarkers.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                pointMarkersActionPerformed(evt);
+            }
+        });
+        jToolBar.add(pointMarkers);
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
 
@@ -302,7 +330,7 @@ public class MainWindow extends javax.swing.JFrame {
         jLabel2.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         jLabel2.setText("Algorithm");
 
-        smAlgoCombo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Default", "Unweighted Sliding Average ", "Triangular Smoothing", "Savitzky-Golay", " " }));
+        smAlgoCombo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Default", "Unweighted Sliding Average ", "Triangular Smoothing", " " }));
         smAlgoCombo.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 smAlgoComboActionPerformed(evt);
@@ -606,6 +634,22 @@ public class MainWindow extends javax.swing.JFrame {
                     createSmoothed_spectrum(ls.rowDataList, ls.avgPointList);
                     //end of function
 
+                    //show peaks graph
+                    /*   ValleysLocator ml = new ValleysLocator();
+                    ml.addCandidates();
+
+                    switch (algorithm) {
+                        case 1:
+                            createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset());
+                            break;
+                        case 2:
+                            createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset());
+                            break;
+                        case 3:
+                            createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset());
+                            break;
+                   } */
+                    //end of peak function
                 } else if (input.equals("Intensity vs Absorbance")) {
                     readFile();
                     TransToAbs ab = new TransToAbs();
@@ -638,11 +682,33 @@ public class MainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_openMenuItemActionPerformed
 
     private void peakButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_peakButtonActionPerformed
-        MinimaLocator ml = new MinimaLocator();
-        ml.findMinima();
-        ml.cal_Minimas(0);
-        ls = SlidingAvgSmooth.getInstance();
-        createDuel(ml.createDataset(), createDataset(ls.originalPoints, ls.smoothedPoints));
+        comPanel.removeAll();
+        comPanel.revalidate();
+        comPanel.repaint();
+
+        try {
+            MinimaLocator ml = new MinimaLocator();
+            ml.findMinima();
+//        ml.cal_Minimas(0);
+
+            switch (algorithm) {
+                case 1:
+                    ds = DefaultSmooth.getInstance();
+                    createDuel(ml.createDataset(), createSmoothedDataset());
+                    break;
+                case 2:
+                    ls = SlidingAvgSmooth.getInstance();
+                    createDuel(ml.createDataset(), createSmoothedDataset());
+                    break;
+                case 3:
+                    tri = TriangularSmooth.getInstance();
+                    createDuel(ml.createDataset(), createSmoothedDataset());
+                    break;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }//GEN-LAST:event_peakButtonActionPerformed
 
     private void clearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearButtonActionPerformed
@@ -654,16 +720,53 @@ public class MainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_button_specgenActionPerformed
 
     private void smoothedSpecButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_smoothedSpecButtonActionPerformed
-        DefaultSmooth ls = new DefaultSmooth();
-        ls.general_avg_algorithm_3point(sliderValue);
-        createSmoothed_spectrum(ls.rowDataList, ls.avgPointList);
-        ls.updateSmoothedValue();
+        rsPanel.removeAll();
+        rsPanel.revalidate();
+        rsPanel.repaint();
+//        createSmoothed_spectrum(ls.rowDataList, ls.avgPointList); //could be used to show graph of selected section only
+//        ls.updateSmoothedValue();
+        switch (MainWindow.getAlgorithm()) {
+            case 1:
+                DefaultSmooth df = new DefaultSmooth();
+                df.smooth_selected_section();
+                generate_spectrum(rsPanel, "avg_data");
+                break;
+            case 2:
+                SlidingAvgSmooth_Selection sl = new SlidingAvgSmooth_Selection();
+                sl.smooth_selected_section();
+                generate_spectrum(rsPanel, "avg_data");
+                break;
+            case 3:
+                TriangularSmooth_Selection ts = new TriangularSmooth_Selection();
+                ts.smooth_selected_section();
+                generate_spectrum(rsPanel, "avg_data");
+                //
+                break;
+        }
     }//GEN-LAST:event_smoothedSpecButtonActionPerformed
 
-    private void sliderButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sliderButtonActionPerformed
+    private void loadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadButtonActionPerformed
 
+        try {
+            ValleysLocator ml = new ValleysLocator();
+            ml.addCandidates();
 
-    }//GEN-LAST:event_sliderButtonActionPerformed
+            switch (algorithm) {
+                case 1:
+                    createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset());
+                    break;
+                case 2:
+                    createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset());
+                    break;
+                case 3:
+                    createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset());
+                    break;
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_loadButtonActionPerformed
 
     private void smoothningSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_smoothningSliderStateChanged
 
@@ -695,7 +798,16 @@ public class MainWindow extends javax.swing.JFrame {
                         val_label1.setText(null);
                         val_label2.setText(null);
 
+                        if (smAlgoCombo.getSelectedItem().toString().equalsIgnoreCase("Default")) {
+                            algorithm = 1;
+                            ds = DefaultSmooth.getInstance();
+                            ds.general_avg_algorithm_3point(sliderValue);
+                            createSmoothed_spectrum(ds.rowDataList, ds.avgPointList);
+                            filterPassLabel.setText(Integer.toString(sliderValue));
+                        }
+
                         if (smAlgoCombo.getSelectedItem().toString().equalsIgnoreCase("Unweighted Sliding Average ")) {
+                            algorithm = 2;
                             ls = SlidingAvgSmooth.getInstance();
 
                             if (threepoints.isSelected()) {
@@ -733,7 +845,7 @@ public class MainWindow extends javax.swing.JFrame {
                             filterPassLabel.setText(Integer.toString(ls.count));
                         }
                         if (smAlgoCombo.getSelectedItem().toString().equalsIgnoreCase("Triangular Smoothing")) {
-
+                            algorithm = 3;
                             tri = TriangularSmooth.getInstance();
                             for (int i = 0; i < sliderValue - prev; i++) {
                                 tri.cal_5point_avg();
@@ -741,13 +853,13 @@ public class MainWindow extends javax.swing.JFrame {
                             }
                             filterPassLabel.setText(Integer.toString(ls.count));
                         }
-                        if (smAlgoCombo.getSelectedItem().toString().equalsIgnoreCase("Default")) {
-
-                            ds = DefaultSmooth.getInstance();
-                            ds.general_avg_algorithm_3point(sliderValue);
-                            createSmoothed_spectrum(ds.rowDataList, ds.avgPointList);
-                            filterPassLabel.setText(Integer.toString(sliderValue));
-                        }
+//                        if (smAlgoCombo.getSelectedItem().toString().equalsIgnoreCase("Default")) {
+//                            algorithm = 1;
+//                            ds = DefaultSmooth.getInstance();
+//                            ds.general_avg_algorithm_3point(sliderValue);
+//                            createSmoothed_spectrum(ds.rowDataList, ds.avgPointList);
+//                            filterPassLabel.setText(Integer.toString(sliderValue));
+//                        }
 
                         if (sliderValue > prev) {
                             sliderValuesList.add(sliderValue);
@@ -810,7 +922,7 @@ public class MainWindow extends javax.swing.JFrame {
         smoothningSlider.setValue(1);
         if (obj == smAlgoCombo) {
             if (smAlgoCombo.getSelectedItem().equals("Triangular Smoothing")) {
-
+                algorithm = 3;
                 threepoints.setEnabled(false);
                 fivepoints.setSelected(true);
                 fivepoints.setEnabled(true);
@@ -818,25 +930,26 @@ public class MainWindow extends javax.swing.JFrame {
                 ninepoints.setEnabled(false);
 
             } else if (smAlgoCombo.getSelectedItem().equals("Default")) {
-
+                algorithm = 1;
                 while (enumeration.hasMoreElements()) {
                     enumeration.nextElement().setEnabled(false);
 
                 }
             } else if (smAlgoCombo.getSelectedItem().equals("Unweighted Sliding Average ")) {
-
+                algorithm = 2;
                 while (enumeration.hasMoreElements()) {
                     enumeration.nextElement().setEnabled(true);
 
                 }
             } else {
-
+                algorithm = 0;
                 while (enumeration.hasMoreElements()) {
                     enumeration.nextElement().setEnabled(true);
 
                 }
             }
         }
+
     }//GEN-LAST:event_smAlgoComboActionPerformed
 
     private void iterateButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_iterateButtonActionPerformed
@@ -879,6 +992,10 @@ public class MainWindow extends javax.swing.JFrame {
 
     }//GEN-LAST:event_resetSmoothButtonActionPerformed
 
+    private void pointMarkersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pointMarkersActionPerformed
+//        Double ending  = MouseMarker.getMarkerEnd();
+    }//GEN-LAST:event_pointMarkersActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -917,12 +1034,14 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JToolBar jToolBar;
+    private javax.swing.JButton loadButton;
     private javax.swing.JMenuItem newMenuItem;
     private javax.swing.JRadioButton ninepoints;
     private javax.swing.JButton openButton;
     private javax.swing.JMenuItem openMenuItem;
     private javax.swing.JMenu optionsMenu;
     private javax.swing.JButton peakButton;
+    private javax.swing.JButton pointMarkers;
     private javax.swing.ButtonGroup pointsbuttonGroup;
     private javax.swing.JMenuItem printMenuItem;
     private javax.swing.JButton resetSmoothButton;
@@ -930,7 +1049,6 @@ public class MainWindow extends javax.swing.JFrame {
     public javax.swing.JPanel rsPanel;
     private javax.swing.JMenuItem saveMenuItem;
     private javax.swing.JRadioButton sevenpoints;
-    private javax.swing.JButton sliderButton;
     private javax.swing.JComboBox<String> smAlgoCombo;
     private javax.swing.JButton smoothedSpecButton;
     private javax.swing.JSlider smoothningSlider;
@@ -983,7 +1101,8 @@ public class MainWindow extends javax.swing.JFrame {
             ChartPanel chartPanel = new ChartPanel(spec);
 //            System.out.println(chartPanel.getPreferredSize());
             chartPanel.setPreferredSize(new Dimension(654, 350));
-            chartPanel.setDomainZoomable(true);
+            chartPanel.setDomainZoomable(false);
+            chartPanel.addMouseListener(new MouseMarker(chartPanel));
 
             BarRenderer renderer = null;
             XYPlot plot = spec.getXYPlot();
@@ -1324,6 +1443,27 @@ public class MainWindow extends javax.swing.JFrame {
         return dataset;
     }
 
+    private XYDataset createValleyDataset(SortedMap<BigDecimal, BigDecimal> pointList) {
+        final XYSeries valleyPoints = new XYSeries("Valley Points");
+
+        for (BigDecimal wavelength : pointList.keySet()) {
+
+            BigDecimal key = wavelength;
+            BigDecimal value = pointList.get(wavelength);
+            valleyPoints.add(key, value);
+
+        }
+        final XYSeriesCollection dataset = new XYSeriesCollection();
+        dataset.addSeries(valleyPoints);
+        return dataset;
+    }
+
+    private XYDataset createSmoothedDataset() throws SQLException {
+        String query1 = "select WAVENUMBER, TRANSMITTANCE from avg_data";
+        JDBCXYDataset dataset = new JDBCXYDataset(conn, query1);
+        return dataset;
+    }
+
     public void createSmoothed_spectrum(ArrayList<InputData> rowDataList, ArrayList<BigDecimal> averagedList) {
         try {
             rsPanel.removeAll();
@@ -1336,7 +1476,6 @@ public class MainWindow extends javax.swing.JFrame {
             JFreeChart spec1 = ChartFactory.createXYLineChart("", "Wavenumber (cm-1)", "Transmittance %", dataset1, PlotOrientation.VERTICAL, false, true, true);
 
             spec1.setBorderVisible(false);
-
             spec1.getXYPlot().setDomainGridlinesVisible(true);
 
             ChartPanel chartPanel = new ChartPanel(spec1);
@@ -1447,7 +1586,7 @@ public class MainWindow extends javax.swing.JFrame {
                 System.out.println(e);
             }
         }
-        System.out.println("All cleared");
+//        System.out.println("All cleared");
         update_table();
 
     }

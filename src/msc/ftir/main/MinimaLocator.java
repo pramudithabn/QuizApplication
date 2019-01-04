@@ -11,11 +11,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import static msc.ftir.main.DefaultSmooth.rowDataList;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -30,13 +32,35 @@ public class MinimaLocator {
     PreparedStatement pst = null;
     ResultSet rs = null;
 
-    ArrayList<InputData> avgList = new ArrayList<InputData>();
+    private ArrayList<InputData> avgList = new ArrayList<InputData>();
 //    ArrayList<BigDecimal,BigDecimal> minimaList = new ArrayList<BigDecimal,BigDecimal>();
-    SortedMap<BigDecimal, BigDecimal> minima = new TreeMap<BigDecimal, BigDecimal>();
-    SortedMap<BigDecimal, BigDecimal> minimaList = new TreeMap<BigDecimal, BigDecimal>();
+    private SortedMap<BigDecimal, BigDecimal> minima = new TreeMap<BigDecimal, BigDecimal>();
+    private SortedMap<BigDecimal, BigDecimal> minimaList = new TreeMap<BigDecimal, BigDecimal>();
+    private ArrayList<BigDecimal> gapDifferenceList = new ArrayList<BigDecimal>();
     private double mean;
     private double stdDeviation;
     private double hConst;
+    private int maxIndex=0;
+    private int minIndex=0;
+    private BigDecimal minScale;
+    private BigDecimal maxScale;
+    private BigDecimal scaleFactor;
+
+    public int getMaxIndex() {
+        return maxIndex;
+    }
+
+    public void setMaxIndex(int maxIndex) {
+        this.maxIndex = maxIndex;
+    }
+
+    public int getMinIndex() {
+        return minIndex;
+    }
+
+    public void setMinIndex(int minIndex) {
+        this.minIndex = minIndex;
+    }
 
     public MinimaLocator() {
         conn = Javaconnect.ConnecrDb();
@@ -88,11 +112,34 @@ public class MinimaLocator {
 
         double left = 0;
         double right = 0;
+        BigDecimal diff = null;
+        int rindex=0;
+        int listSize = rowDataList.size();
+        int scale=10;
 
-//        if (getValue(0) < getValue(1)) {
-//
-//            minima.put(this.avgList.get(0).getWavenumber(), this.avgList.get(0).getTransmittance());
-//        }
+        for (rindex = 1; rindex < listSize - 1; rindex++) {
+
+            BigDecimal n1 = rowDataList.get(rindex - 1).getTransmittance();
+            BigDecimal n2 = rowDataList.get(rindex).getTransmittance();
+
+            diff = n1.subtract(n2);
+
+            BigDecimal d = diff.abs();
+
+            gapDifferenceList.add(d);
+
+        }
+
+        int minIndex = gapDifferenceList.indexOf(Collections.min(gapDifferenceList));
+        int maxIndex = gapDifferenceList.indexOf(Collections.max(gapDifferenceList));
+
+        minScale = gapDifferenceList.get(minIndex);
+        maxScale = gapDifferenceList.get(maxIndex);
+
+        scaleFactor = ((maxScale.subtract(minScale)).divide(BigDecimal.valueOf(100))).multiply(BigDecimal.valueOf(scale));
+        
+        double scFac = (scaleFactor).doubleValue();
+        
         for (int index = 1; index < this.avgList.size() - 2; index++) {
 
             double x1 = this.avgList.get(index - 1).getWavenumber().doubleValue();
@@ -107,9 +154,18 @@ public class MinimaLocator {
 
                 left = (y2 - y1) / (x2 - x1);
                 right = (y3 - y2) / (x3 - x2);
+                
+                double absL =Math.abs(left);
+                double absR =Math.abs(right);
+                
+                
 
-                if (left > 0 && right < 0) {
-
+                if (left > 0 && right < 0 /*&& */) {
+                    
+                    if (absL>scFac && absR>scFac) {
+                        continue;
+                    }
+                    
                     minima.put(this.avgList.get(index).getWavenumber(), this.avgList.get(index).getTransmittance());
                 }
 

@@ -20,5 +20,7 @@ public interface SlidingWindow {
     void cal_9point_avg();
 
     void updateSmoothedValue();
+    
+    void clearAvgTable();
 
 }

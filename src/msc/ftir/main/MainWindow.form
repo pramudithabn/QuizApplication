@@ -265,7 +265,7 @@
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="clearButtonActionPerformed"/>
           </Events>
         </Component>
-        <Component class="javax.swing.JButton" name="sliderButton">
+        <Component class="javax.swing.JButton" name="loadButton">
           <Properties>
             <Property name="text" type="java.lang.String" value="Load"/>
             <Property name="focusable" type="boolean" value="false"/>
@@ -273,7 +273,18 @@
             <Property name="verticalTextPosition" type="int" value="3"/>
           </Properties>
           <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="sliderButtonActionPerformed"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="loadButtonActionPerformed"/>
+          </Events>
+        </Component>
+        <Component class="javax.swing.JButton" name="pointMarkers">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="MarkerPoints"/>
+            <Property name="focusable" type="boolean" value="false"/>
+            <Property name="horizontalTextPosition" type="int" value="0"/>
+            <Property name="verticalTextPosition" type="int" value="3"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="pointMarkersActionPerformed"/>
           </Events>
         </Component>
       </SubComponents>
@@ -470,12 +481,11 @@
             <Component class="javax.swing.JComboBox" name="smAlgoCombo">
               <Properties>
                 <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-                  <StringArray count="5">
+                  <StringArray count="4">
                     <StringItem index="0" value="Default"/>
                     <StringItem index="1" value="Unweighted Sliding Average "/>
                     <StringItem index="2" value="Triangular Smoothing"/>
-                    <StringItem index="3" value="Savitzky-Golay"/>
-                    <StringItem index="4" value=" "/>
+                    <StringItem index="3" value=" "/>
                   </StringArray>
                 </Property>
               </Properties>
