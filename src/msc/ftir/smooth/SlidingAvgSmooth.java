@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package msc.ftir.main;
+package msc.ftir.smooth;
 
+import msc.ftir.main.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Connection;
@@ -25,13 +26,13 @@ import javax.swing.JOptionPane;
  */
 public class SlidingAvgSmooth implements SlidingWindow{
 
-    Connection conn = null;
-    PreparedStatement pst = null;
-    ResultSet rs = null;
+    private Connection conn = null;
+    private PreparedStatement pst = null;
+    private ResultSet rs = null;
     public ArrayList<InputData> originalPoints = new ArrayList<InputData>();
     public ArrayList<BigDecimal> smoothedPoints = new ArrayList<BigDecimal>();
-    NavigableMap<BigDecimal, BigDecimal> originalPointList = new TreeMap<BigDecimal, BigDecimal>();
-    SortedMap<BigDecimal, BigDecimal> smoothedPointList = new TreeMap<BigDecimal, BigDecimal>();
+    private NavigableMap<BigDecimal, BigDecimal> originalPointList = new TreeMap<BigDecimal, BigDecimal>();
+    private SortedMap<BigDecimal, BigDecimal> smoothedPointList = new TreeMap<BigDecimal, BigDecimal>();
     public static int count = 0;
     private static volatile SlidingAvgSmooth instance;
 

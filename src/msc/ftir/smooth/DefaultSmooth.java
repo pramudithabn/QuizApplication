@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package msc.ftir.main;
+package msc.ftir.smooth;
 
+import msc.ftir.main.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Connection;
@@ -18,6 +19,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import org.jfree.chart.ChartPanel;
+import msc.ftir.main.MouseMarker;
 
 /**
  * A method to smooth a line based on the McMaster line smoothing algorithm
@@ -26,7 +28,7 @@ import org.jfree.chart.ChartPanel;
  */
 public class DefaultSmooth {
 
-    static ArrayList<InputData> rowDataList = new ArrayList<InputData>();
+    public static ArrayList<InputData> rowDataList = new ArrayList<InputData>();
     public static ArrayList<BigDecimal> avgPointList = new ArrayList<BigDecimal>();
     ArrayList<BigDecimal> gapDifferenceList = new ArrayList<BigDecimal>();
     ArrayList<Integer> filteredIDList = new ArrayList<Integer>();
@@ -241,7 +243,7 @@ public class DefaultSmooth {
 
         }
         avgPointList.add(last);
-//        updateSmoothedValue();
+        updateSmoothedValue();
 
     }
 
@@ -354,6 +356,36 @@ public class DefaultSmooth {
 
         String sql = "INSERT INTO avg_data (wavenumber,transmittance)  VALUES " + fullarrays;
 
+        ResultSet rs = null;
+        PreparedStatement pst = null;
+
+        try {
+            pst = conn.prepareStatement(sql);
+            pst.executeUpdate();
+
+        } catch (Exception e) {
+            System.out.println(e);
+        } finally {
+            try {
+                rs.close();
+                pst.close();
+            } catch (Exception e) {
+
+            }
+        }
+
+    }
+    
+    public void updateSmoothedValue() {
+        clearAvgTable();
+        String fullarrays = "";
+        for (int i = 0; i < rowDataList.size(); i++) {
+            String twoarrays = "(" + rowDataList.get(i).getWavenumber() + " , " + avgPointList.get(i) + ")";
+            fullarrays = fullarrays + twoarrays + ",";
+        }
+        fullarrays = fullarrays.substring(0, fullarrays.length() - 1);
+
+        String sql = "INSERT INTO avg_data (wavenumber,transmittance)  VALUES " + fullarrays;
         ResultSet rs = null;
         PreparedStatement pst = null;
 

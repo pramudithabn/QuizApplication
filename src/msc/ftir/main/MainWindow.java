@@ -1,6 +1,10 @@
 package msc.ftir.main;
 
+import msc.ftir.valleys.ValleysLocator;
+import msc.ftir.smooth.*;
+import msc.ftir.baseline.BaselineCorrection;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -44,6 +48,9 @@ import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import java.util.Properties;
+import org.jfree.chart.plot.ValueMarker;
+import org.jfree.ui.RectangleAnchor;
+import org.jfree.ui.TextAnchor;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -68,12 +75,22 @@ public class MainWindow extends javax.swing.JFrame {
     private SlidingAvgSmooth ls = null;
     private TriangularSmooth tri = null;
     private DefaultSmooth ds = null;
+    private SlidingAvgSmooth_Selection sl = null;
+    private TriangularSmooth_Selection ts = null;
+    private ValleysLocator ml = null;
+    private BaselineCorrection bc = null;
     public static Boolean newInstance = false;
     private ArrayList<Integer> sliderValuesList = new ArrayList<Integer>();
     private int prev = 0;
     private boolean inputvalidity = true;
     private Properties p = new Properties();
     public static int points = 0;
+    private XYPlot plot = null;
+    private double thresh = 0;
+    private int lowerBoundX = 0, upperBoundX = 0;
+    private double lowerBoundT = 0, upperBoundT = 0;
+    private JFreeChart spec = null, chart = null;
+    private Scale s = null;
 
     public static int getPoints() {
         return points;
@@ -140,7 +157,7 @@ public class MainWindow extends javax.swing.JFrame {
         peakButton = new javax.swing.JButton();
         clearButton = new javax.swing.JButton();
         loadButton = new javax.swing.JButton();
-        pointMarkers = new javax.swing.JButton();
+        line = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         filePathText = new javax.swing.JTextField();
         openButton = new javax.swing.JButton();
@@ -164,6 +181,11 @@ public class MainWindow extends javax.swing.JFrame {
         tablePanel = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         dataTable = new javax.swing.JTable();
+        jPanel2 = new javax.swing.JPanel();
+        threshText = new javax.swing.JTextField();
+        jLabel4 = new javax.swing.JLabel();
+        threshold = new javax.swing.JButton();
+        thresholdSlider = new javax.swing.JSlider();
         jLayeredPane1 = new javax.swing.JLayeredPane();
         comPanel = new javax.swing.JPanel();
         jMenuBar1 = new javax.swing.JMenuBar();
@@ -193,20 +215,20 @@ public class MainWindow extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("FTIR Interpreter");
 
-        specPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "FTIR SPECTRUM", javax.swing.border.TitledBorder.LEFT, javax.swing.border.TitledBorder.TOP, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
+        specPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "ORIGINAL SPECTRUM", javax.swing.border.TitledBorder.LEFT, javax.swing.border.TitledBorder.TOP, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
 
         javax.swing.GroupLayout specPanelLayout = new javax.swing.GroupLayout(specPanel);
         specPanel.setLayout(specPanelLayout);
         specPanelLayout.setHorizontalGroup(
             specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 642, Short.MAX_VALUE)
+            .addGap(0, 694, Short.MAX_VALUE)
         );
         specPanelLayout.setVerticalGroup(
             specPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 283, Short.MAX_VALUE)
         );
 
-        rsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "SMOOTHED SPECTRUM", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
+        rsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "DEMO", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
 
         javax.swing.GroupLayout rsPanelLayout = new javax.swing.GroupLayout(rsPanel);
         rsPanel.setLayout(rsPanelLayout);
@@ -269,16 +291,17 @@ public class MainWindow extends javax.swing.JFrame {
         });
         jToolBar.add(loadButton);
 
-        pointMarkers.setText("MarkerPoints");
-        pointMarkers.setFocusable(false);
-        pointMarkers.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        pointMarkers.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        pointMarkers.addActionListener(new java.awt.event.ActionListener() {
+        line.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/Scatter Plot_20px.png"))); // NOI18N
+        line.setText("Line");
+        line.setFocusable(false);
+        line.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        line.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        line.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                pointMarkersActionPerformed(evt);
+                lineActionPerformed(evt);
             }
         });
-        jToolBar.add(pointMarkers);
+        jToolBar.add(line);
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
 
@@ -476,20 +499,78 @@ public class MainWindow extends javax.swing.JFrame {
         tablePanel.setLayout(tablePanelLayout);
         tablePanelLayout.setHorizontalGroup(
             tablePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(tablePanelLayout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, tablePanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 681, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 589, Short.MAX_VALUE)
                 .addContainerGap())
         );
         tablePanelLayout.setVerticalGroup(
             tablePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, tablePanelLayout.createSequentialGroup()
+            .addGroup(tablePanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 192, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 313, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
-        jTabbedPane1.addTab("Data", tablePanel);
+        jTabbedPane1.addTab("Data         ", tablePanel);
+
+        jLabel4.setFont(new java.awt.Font("Tahoma", 3, 12)); // NOI18N
+        jLabel4.setText("Threshold");
+
+        threshold.setText("Add");
+        threshold.setFocusable(false);
+        threshold.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        threshold.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        threshold.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                thresholdActionPerformed(evt);
+            }
+        });
+
+        thresholdSlider.setMajorTickSpacing(10);
+        thresholdSlider.setMinorTickSpacing(1);
+        thresholdSlider.setPaintLabels(true);
+        thresholdSlider.setPaintTicks(true);
+        thresholdSlider.setToolTipText("");
+        thresholdSlider.setValue(1);
+        thresholdSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                thresholdSliderStateChanged(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(28, 28, 28)
+                .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(threshText, javax.swing.GroupLayout.PREFERRED_SIZE, 116, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(52, 52, 52)
+                .addComponent(threshold)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                .addContainerGap(70, Short.MAX_VALUE)
+                .addComponent(thresholdSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 484, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(55, 55, 55))
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(37, 37, 37)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(threshold)
+                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(threshText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel4)))
+                .addGap(33, 33, 33)
+                .addComponent(thresholdSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 73, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(169, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("Threshold", jPanel2);
 
         comPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "BANDS", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
 
@@ -626,7 +707,10 @@ public class MainWindow extends javax.swing.JFrame {
                 if (input.equals("Intensity vs Transmittance")) {
 
                     readFile();
-                    generate_spectrum(specPanel, "input_data");
+//                    generate_spectrum(specPanel, "input_data");
+
+                    s = new Scale();
+                    create_spectrum(s.getFixedScaleList(), specPanel);
 
                     //smoothed spec by auto function
                     DefaultSmooth ls = new DefaultSmooth();
@@ -669,7 +753,11 @@ public class MainWindow extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Invalid file format!", "Error", JOptionPane.ERROR_MESSAGE);
 
         }
-
+//        thresholdSlider.setMaximum(upperBoundT);
+//     
+//        thresholdSlider.setMinimum(lowerBoundT);
+//        thresholdSlider.setPaintTicks(true);
+//        thresholdSlider.setPaintLabels(true);
 
     }//GEN-LAST:event_openButtonActionPerformed
 
@@ -682,9 +770,9 @@ public class MainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_openMenuItemActionPerformed
 
     private void peakButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_peakButtonActionPerformed
-        comPanel.removeAll();
-        comPanel.revalidate();
-        comPanel.repaint();
+        rsPanel.removeAll();
+        rsPanel.revalidate();
+        rsPanel.repaint();
 
         try {
             MinimaLocator ml = new MinimaLocator();
@@ -694,15 +782,15 @@ public class MainWindow extends javax.swing.JFrame {
             switch (algorithm) {
                 case 1:
                     ds = DefaultSmooth.getInstance();
-                    createDuel(ml.createDataset(), createSmoothedDataset());
+                    createDuel(ml.createDataset(), createSmoothedDataset(), rsPanel);
                     break;
                 case 2:
                     ls = SlidingAvgSmooth.getInstance();
-                    createDuel(ml.createDataset(), createSmoothedDataset());
+                    createDuel(ml.createDataset(), createSmoothedDataset(), rsPanel);
                     break;
                 case 3:
                     tri = TriangularSmooth.getInstance();
-                    createDuel(ml.createDataset(), createSmoothedDataset());
+                    createDuel(ml.createDataset(), createSmoothedDataset(), rsPanel);
                     break;
             }
         } catch (SQLException ex) {
@@ -732,12 +820,14 @@ public class MainWindow extends javax.swing.JFrame {
                 generate_spectrum(rsPanel, "avg_data");
                 break;
             case 2:
-                SlidingAvgSmooth_Selection sl = new SlidingAvgSmooth_Selection();
+//                SlidingAvgSmooth_Selection sl = new SlidingAvgSmooth_Selection();
+                sl = SlidingAvgSmooth_Selection.getInstance();
                 sl.smooth_selected_section();
                 generate_spectrum(rsPanel, "avg_data");
                 break;
             case 3:
-                TriangularSmooth_Selection ts = new TriangularSmooth_Selection();
+//                TriangularSmooth_Selection ts = new TriangularSmooth_Selection();
+                ts = TriangularSmooth_Selection.getInstance();
                 ts.smooth_selected_section();
                 generate_spectrum(rsPanel, "avg_data");
                 //
@@ -748,20 +838,10 @@ public class MainWindow extends javax.swing.JFrame {
     private void loadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadButtonActionPerformed
 
         try {
-            ValleysLocator ml = new ValleysLocator();
+            ml = new ValleysLocator();
             ml.addCandidates();
 
-            switch (algorithm) {
-                case 1:
-                    createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset());
-                    break;
-                case 2:
-                    createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset());
-                    break;
-                case 3:
-                    createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset());
-                    break;
-            }
+            createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset(), comPanel);
 
         } catch (SQLException ex) {
             Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
@@ -992,9 +1072,110 @@ public class MainWindow extends javax.swing.JFrame {
 
     }//GEN-LAST:event_resetSmoothButtonActionPerformed
 
-    private void pointMarkersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pointMarkersActionPerformed
-//        Double ending  = MouseMarker.getMarkerEnd();
-    }//GEN-LAST:event_pointMarkersActionPerformed
+    private void lineActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lineActionPerformed
+
+        try {
+            bc = new BaselineCorrection();
+//            bc.least_square_method(ml.getValleyCandidates());
+//            CombineBarAndLineChart(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset());
+//        createDuel(createValleyDataset(ml.getValleyCandidates()), create2BaseLineDataset());
+//            generate_spectrum(rsPanel, "avg_data");
+            bc.drawRegressionLine(chart, createInputDataset(), lowerBoundX, upperBoundX);
+            create_spectrum(bc.getBaseLineCorrected(), comPanel);
+
+        } catch (SQLException ex) {
+            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+        }
+//
+    }//GEN-LAST:event_lineActionPerformed
+
+    private void thresholdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_thresholdActionPerformed
+        try {
+
+            //horizontal line drawer
+            double thresh = Double.valueOf(threshText.getText());
+            ValueMarker marker = new ValueMarker(thresh);
+            marker.setLabel("Threshold Level");
+            marker.setLabelAnchor(RectangleAnchor.CENTER);
+            marker.setLabelTextAnchor(TextAnchor.TOP_CENTER);
+            marker.setPaint(Color.BLACK);
+            plot.addRangeMarker(marker);
+            //end
+
+            //discard points those who cannot attain threshold
+            comPanel.removeAll();
+            comPanel.revalidate();
+            comPanel.repaint();
+            ml.discard_below_threshold(BigDecimal.valueOf(thresh));
+
+            switch (algorithm) {
+                case 1:
+                    createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset(), comPanel);
+                    break;
+                case 2:
+                    createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset(), comPanel);
+                    break;
+                case 3:
+                    createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset(), comPanel);
+                    break;
+                    
+                    
+            }
+            //end
+        } catch (SQLException ex) {
+            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_thresholdActionPerformed
+
+    private void thresholdSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_thresholdSliderStateChanged
+        thresholdSlider.addChangeListener(new ChangeListener() {
+
+            public void stateChanged(ChangeEvent e) {
+                ValueMarker marker = null;
+
+                
+                    plot.clearRangeMarkers();
+              
+                if (!(thresholdSlider.getValueIsAdjusting())) {
+                    try {
+                        int thresholdValue = thresholdSlider.getValue();
+
+                        //horizontal line drawer
+                        marker = new ValueMarker(thresholdValue);
+                        System.out.println(thresholdValue);
+                        marker.setLabel("Threshold Level");
+                        marker.setLabelAnchor(RectangleAnchor.CENTER);
+                        marker.setLabelTextAnchor(TextAnchor.TOP_CENTER);
+                        marker.setPaint(Color.BLACK);
+                        plot.addRangeMarker(marker);
+                        //end
+
+                        //discard points those who cannot attain threshold
+                        comPanel.removeAll();
+                        comPanel.revalidate();
+                        comPanel.repaint();
+                        ml.discard_below_threshold(BigDecimal.valueOf(thresh));
+
+                        switch (algorithm) {
+                            case 1:
+                                createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset(), comPanel);
+                                break;
+                            case 2:
+                                createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset(), comPanel);
+                                break;
+                            case 3:
+                                createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset(), comPanel);
+                                break;
+                        }
+                    } catch (SQLException ex) {
+                        Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+
+            }
+
+        });
+    }//GEN-LAST:event_thresholdSliderStateChanged
 
     /**
      * @param args the command line arguments
@@ -1026,14 +1207,17 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLayeredPane jLayeredPane1;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JToolBar jToolBar;
+    private javax.swing.JButton line;
     private javax.swing.JButton loadButton;
     private javax.swing.JMenuItem newMenuItem;
     private javax.swing.JRadioButton ninepoints;
@@ -1041,7 +1225,6 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JMenuItem openMenuItem;
     private javax.swing.JMenu optionsMenu;
     private javax.swing.JButton peakButton;
-    private javax.swing.JButton pointMarkers;
     private javax.swing.ButtonGroup pointsbuttonGroup;
     private javax.swing.JMenuItem printMenuItem;
     private javax.swing.JButton resetSmoothButton;
@@ -1055,6 +1238,9 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JPanel specPanel;
     private javax.swing.JPanel tablePanel;
     private javax.swing.JRadioButton threepoints;
+    private javax.swing.JTextField threshText;
+    private javax.swing.JButton threshold;
+    private javax.swing.JSlider thresholdSlider;
     private javax.swing.JMenu toolsMenu;
     private javax.swing.JLabel val_label1;
     private javax.swing.JLabel val_label2;
@@ -1084,6 +1270,9 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void generate_spectrum(JPanel jpanel, String tableName) {
         try {
+            jpanel.removeAll();
+            jpanel.revalidate();
+            jpanel.repaint();
 //            String query1 = "select WAVENUMBER, TRANSMITTANCE from abs_data";
 //            String query1 = "select WAVENUMBER, TRANSMITTANCE from input_data";
 
@@ -1092,8 +1281,8 @@ public class MainWindow extends javax.swing.JFrame {
 
             JDBCXYDataset dataset = new JDBCXYDataset(conn, query1);
 
-            JFreeChart spec = ChartFactory.createXYLineChart("", "Wavenumber (cm-1)", "Transmittance %", dataset, PlotOrientation.VERTICAL, false, true, true);
-
+//            JFreeChart spec = ChartFactory.createXYLineChart("", "Wavenumber (cm-1)", "Transmittance %", dataset, PlotOrientation.VERTICAL, false, true, true);
+            spec = ChartFactory.createXYLineChart("", "Wavenumber (cm-1)", "Transmittance %", dataset, PlotOrientation.VERTICAL, false, true, true);
             spec.setBorderVisible(false);
 
             spec.getXYPlot().setDomainGridlinesVisible(true);
@@ -1105,7 +1294,7 @@ public class MainWindow extends javax.swing.JFrame {
             chartPanel.addMouseListener(new MouseMarker(chartPanel));
 
             BarRenderer renderer = null;
-            XYPlot plot = spec.getXYPlot();
+            plot = spec.getXYPlot();
             NumberAxis range = (NumberAxis) plot.getRangeAxis();
             range.setAutoRange(true);
             renderer = new BarRenderer();
@@ -1120,6 +1309,13 @@ public class MainWindow extends javax.swing.JFrame {
             domain.setAutoRange(true);
             domain.setInverted(true);
 
+            lowerBoundX = (int) plot.getDomainAxis().getRange().getLowerBound();
+            upperBoundX = (int) plot.getDomainAxis().getRange().getUpperBound();
+
+            lowerBoundT = plot.getRangeAxis().getRange().getLowerBound();
+            upperBoundT = plot.getRangeAxis().getRange().getUpperBound();
+
+//            System.out.println(lowerBoundX+" "+upperBoundX +"     "+  plot.getRangeAxis().getRange().getLowerBound()*100+" "+plot.getRangeAxis().getRange().getUpperBound()*100);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, e);
         }
@@ -1464,6 +1660,12 @@ public class MainWindow extends javax.swing.JFrame {
         return dataset;
     }
 
+    private XYDataset createInputDataset() throws SQLException {
+        String query1 = "select WAVENUMBER, TRANSMITTANCE from input_data";
+        JDBCXYDataset dataset = new JDBCXYDataset(conn, query1);
+        return dataset;
+    }
+
     public void createSmoothed_spectrum(ArrayList<InputData> rowDataList, ArrayList<BigDecimal> averagedList) {
         try {
             rsPanel.removeAll();
@@ -1494,6 +1696,48 @@ public class MainWindow extends javax.swing.JFrame {
             rsPanel.validate();
             rsPanel.setPreferredSize(new Dimension(654, 350));
             rsPanel.setVisible(true);
+
+            NumberAxis domain = (NumberAxis) plot.getDomainAxis();
+            domain.setAutoRange(true);
+            domain.setInverted(true);
+
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
+    }
+
+    public void create_spectrum(SortedMap<BigDecimal, BigDecimal> map, JPanel panel) {
+        try {
+            panel.removeAll();
+            panel.revalidate();
+            panel.repaint();
+//            String query2 = "select WAVENUMBER, TRANSMITTANCE from avg_data";
+//            JDBCXYDataset dataset = new JDBCXYDataset(conn, query2);
+            XYDataset dataset = createDataset(map);
+
+            JFreeChart chart = ChartFactory.createXYLineChart("", "Wavenumber (cm-1)", "Transmittance %", dataset, PlotOrientation.VERTICAL, false, true, true);
+
+            chart.setBorderVisible(false);
+            chart.getXYPlot().setDomainGridlinesVisible(true);
+
+            ChartPanel chartPanel = new ChartPanel(chart);
+
+            chartPanel.setPreferredSize(new Dimension(654, 350));
+            chartPanel.setDomainZoomable(true);
+
+            BarRenderer renderer = null;
+//            XYPlot plot = chart.getXYPlot(); //old
+            plot = chart.getXYPlot();
+            NumberAxis range = (NumberAxis) plot.getRangeAxis();
+            range.setAutoRange(true);
+            renderer = new BarRenderer();
+
+            panel.setLayout(new java.awt.BorderLayout());
+            panel.add(chartPanel, BorderLayout.CENTER);
+            panel.validate();
+            panel.setPreferredSize(new Dimension(654, 350));
+            panel.setVisible(true);
 
             NumberAxis domain = (NumberAxis) plot.getDomainAxis();
             domain.setAutoRange(true);
@@ -1628,7 +1872,7 @@ public class MainWindow extends javax.swing.JFrame {
 
     }
 
-    public void createDuel(XYDataset set1, XYDataset set2) {
+    public void createDuel(XYDataset set1, XYDataset set2, JPanel panel) {
 
         XYPlot plot = new XYPlot();
 
@@ -1638,6 +1882,7 @@ public class MainWindow extends javax.swing.JFrame {
         ValueAxis range1 = new NumberAxis("Transmittance");
         domain1.setAutoRange(true);
         domain1.setInverted(true);
+        range1.setAutoRange(true);
 
         plot.setDataset(0, collection1);
         plot.setRenderer(0, renderer1);
@@ -1665,13 +1910,99 @@ public class MainWindow extends javax.swing.JFrame {
         plot.mapDatasetToDomainAxis(1, 1);
         plot.mapDatasetToRangeAxis(1, 1);
 
-        JFreeChart chart = new JFreeChart("", JFreeChart.DEFAULT_TITLE_FONT, plot, true);
+        chart = new JFreeChart("", JFreeChart.DEFAULT_TITLE_FONT, plot, true);
         ChartPanel chartPanel = new ChartPanel(chart);
+        panel.setLayout(new java.awt.BorderLayout());
+        panel.add(chartPanel, BorderLayout.CENTER);
+        panel.validate();
+        panel.setPreferredSize(new Dimension(654, 350));
+        panel.setVisible(true);
+
+    }
+
+    public void CombineBarAndLineChart(XYDataset set1, XYDataset set2) {
+
+        // Create Category plot
+        XYPlot plot = new XYPlot();
+
+        // Add the first dataset and render as lines
+        XYItemRenderer lineRenderer = new XYLineAndShapeRenderer(true, false);
+//        plot.setDataset(0, createBaseLineDataset());
+        plot.setDataset(0, create2BaseLineDataset());
+        plot.setRenderer(0, lineRenderer);
+
+        // Add the second dataset and render as lines
+        XYItemRenderer lineRenderer1 = new XYLineAndShapeRenderer(true, true);
+        XYDataset collection1 = set1;
+        XYDataset collection2 = set2;
+        plot.setDataset(1, set1);
+        plot.setRenderer(1, lineRenderer1);
+
+        XYItemRenderer pointRenderer = new XYLineAndShapeRenderer(false, true);
+        plot.setDataset(2, set1);
+        plot.setRenderer(2, pointRenderer);
+
+        // Set Axis
+        plot.setDomainAxis(new NumberAxis("Wavelength"));
+        plot.setRangeAxis(new NumberAxis("Transmittance %"));
+        ValueAxis domain = new NumberAxis("Wavenumber");
+        domain.setInverted(true);
+        plot.mapDatasetToDomainAxis(0, 1);
+        plot.mapDatasetToRangeAxis(0, 1);
+
+        JFreeChart chart = new JFreeChart(plot);
+
+        ChartPanel panel = new ChartPanel(chart);
+
         comPanel.setLayout(new java.awt.BorderLayout());
-        comPanel.add(chartPanel, BorderLayout.CENTER);
+        comPanel.add(panel, BorderLayout.CENTER);
         comPanel.validate();
         comPanel.setPreferredSize(new Dimension(654, 350));
         comPanel.setVisible(true);
+    }
+
+    private XYDataset createBaseLineDataset() {
+        final XYSeries baselinePoints = new XYSeries("Baseline Points");
+
+        for (BigDecimal wavelength : bc.getLinePoints().keySet()) {
+
+            BigDecimal key = wavelength;
+            BigDecimal value = bc.getLinePoints().get(wavelength);
+            baselinePoints.add(key, value);
+
+        }
+        final XYSeriesCollection dataset = new XYSeriesCollection();
+        dataset.addSeries(baselinePoints);
+        return dataset;
+    }
+
+    private XYDataset create2BaseLineDataset() {
+        final XYSeries baselinePoints = new XYSeries("Baseline Points");
+
+        for (BigDecimal wavelength : bc.getLine2Points().keySet()) {
+
+            BigDecimal key = wavelength;
+            BigDecimal value = bc.getLine2Points().get(wavelength);
+            baselinePoints.add(key, value);
+        }
+        final XYSeriesCollection dataset = new XYSeriesCollection();
+        dataset.addSeries(baselinePoints);
+        return dataset;
+    }
+
+    private XYDataset createDataset(SortedMap<BigDecimal, BigDecimal> map) {
+        final XYSeries baselinePoints = new XYSeries("Baseline Corrected");
+
+        for (BigDecimal wavelength : map.keySet()) {
+
+            BigDecimal key = wavelength;
+            BigDecimal value = map.get(wavelength);
+            baselinePoints.add(key, value);
+
+        }
+        final XYSeriesCollection dataset = new XYSeriesCollection();
+        dataset.addSeries(baselinePoints);
+        return dataset;
     }
 
 }

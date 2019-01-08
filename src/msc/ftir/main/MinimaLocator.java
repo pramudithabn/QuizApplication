@@ -17,7 +17,7 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
-import static msc.ftir.main.DefaultSmooth.rowDataList;
+import static msc.ftir.smooth.DefaultSmooth.rowDataList;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;

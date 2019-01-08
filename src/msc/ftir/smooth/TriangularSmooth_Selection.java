@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package msc.ftir.main;
+package msc.ftir.smooth;
 
+import msc.ftir.main.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Connection;
@@ -17,13 +18,13 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
-import static msc.ftir.main.SlidingAvgSmooth.count;
+import static msc.ftir.smooth.SlidingAvgSmooth.count;
 
 /**
  *
  * @author Pramuditha Buddhini
  */
-public class TriangularSmooth implements SlidingWindow {
+public class TriangularSmooth_Selection {
 
     Connection conn = null;
     PreparedStatement pst = null;
@@ -31,11 +32,12 @@ public class TriangularSmooth implements SlidingWindow {
     public ArrayList<InputData> originalPoints = new ArrayList<InputData>();
     SortedMap<BigDecimal, BigDecimal> originalPointList = new TreeMap<BigDecimal, BigDecimal>();
     public ArrayList<BigDecimal> smoothedPoints = new ArrayList<BigDecimal>();
-    private static volatile TriangularSmooth instance;
-    private int listSize = 0 ;
- 
+    private static volatile TriangularSmooth_Selection instance;
+    private int listSize = 0;
+    private ArrayList<Integer> filteredIDList = new ArrayList<Integer>();
+    private int startx, endx;
 
-    public TriangularSmooth() {
+    public TriangularSmooth_Selection() {
         conn = Javaconnect.ConnecrDb();
 
         qdata();
@@ -63,13 +65,13 @@ public class TriangularSmooth implements SlidingWindow {
         }
     }
 
-    public static TriangularSmooth getInstance() {
-        instance = new TriangularSmooth();
+    public static TriangularSmooth_Selection getInstance() {
+        instance = new TriangularSmooth_Selection();
         return instance;
     }
 
     public static void main(String[] args) {
-        TriangularSmooth nw = new TriangularSmooth();
+        TriangularSmooth_Selection nw = new TriangularSmooth_Selection();
 
         for (BigDecimal wn : nw.originalPointList.keySet()) {
             BigDecimal key = wn;
@@ -82,7 +84,7 @@ public class TriangularSmooth implements SlidingWindow {
 
     public ArrayList<InputData> qdata() {
 
-        String sql = "select WAVENUMBER, TRANSMITTANCE from input_data";
+        String sql = "select * from input_data";
         ResultSet rs = null;
         PreparedStatement pst = null;
 
@@ -92,7 +94,7 @@ public class TriangularSmooth implements SlidingWindow {
             InputData d;
             originalPoints.clear();
             while (rs.next()) {
-                d = new InputData(rs.getInt("ID"),rs.getBigDecimal("WAVENUMBER"), rs.getBigDecimal("TRANSMITTANCE"));
+                d = new InputData(rs.getInt("ID"), rs.getBigDecimal("WAVENUMBER"), rs.getBigDecimal("TRANSMITTANCE"));
                 originalPoints.add(d);
 
             }
@@ -118,8 +120,8 @@ public class TriangularSmooth implements SlidingWindow {
         }
     }
 
-    @Override
-    public void cal_5point_avg() {
+
+    public void cal_5point_avg(int start, int end) {
 
         if (!smoothedPoints.isEmpty()) {
             for (int i = 0; i < smoothedPoints.size(); i++) {
@@ -143,7 +145,7 @@ public class TriangularSmooth implements SlidingWindow {
         smoothedPoints.add(start0);
         smoothedPoints.add(start1);
 
-        for (rindex = 2; rindex < listSize - 2; rindex++) {
+        for (rindex = start; rindex < end ; rindex++) {
 
             double n1 = (originalPoints.get(rindex - 2).getTransmittance()).doubleValue();
             double n2 = (originalPoints.get(rindex - 1).getTransmittance()).doubleValue();
@@ -161,12 +163,11 @@ public class TriangularSmooth implements SlidingWindow {
         }
         smoothedPoints.add(end1);
         smoothedPoints.add(end2);
-        updateSmoothedValue();
         count++;
 
     }
 
-    @Override
+
     public void updateSmoothedValue() {
         clearAvgTable();
         String fullarrays = "";
@@ -197,20 +198,7 @@ public class TriangularSmooth implements SlidingWindow {
 
     }
 
-    @Override
-    public void cal_3point_avg() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void cal_7point_avg() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void cal_9point_avg() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+   
 
     public void clearAvgTable() {
 
@@ -229,10 +217,130 @@ public class TriangularSmooth implements SlidingWindow {
                 System.out.println(e);
             }
         }
-        System.out.println("Table cleared");
 
     }
-    
 
+    //smooth the selected section only
+    public void marked_section_smoothing_algorithm() {
+        filteredIDList.clear();
+        BigDecimal diff = null;
+        double start = MouseMarker.getMarkerStart();
+        double end = MouseMarker.getMarkerEnd();
+        Double d2 = new Double(start);
+        Double d3 = new Double(end);
+        int startIndex = 0, endIndex = 0;
+
+        for (int i = 0; i < listSize; i++) {
+
+            double w = originalPoints.get(i).getWavenumber().doubleValue();
+            Double d1 = new Double(w);
+
+            if ((d2 < d1) && (d1 < d3)) {
+                int x = originalPoints.get(i).getId();
+                filteredIDList.add(x);
+
+            }
+        }
+
+        startx = getIndexById(filteredIDList.get(0));
+        endx = getIndexById(filteredIDList.get(filteredIDList.size() - 1));
+
+    }
+
+    //select a section and run a smooth only to that section, other sections remain same
+    public void smooth_selected_section() {
+        clearAvgTable();
+        marked_section_smoothing_algorithm();
+        updateUnsmoothedSection(0, startx);
+        cal_5point_avg(startx,endx);
+//MainWindow.getPoints()
+//int k=9;
+//        switch (k) {
+//            case 3:
+//                cal_3point_avg(startx, endx);
+//            case 5:
+//                cal_5point_avg(startx, endx);
+//            case 7:
+//                cal_7point_avg(startx, endx);
+//            case 9:
+//                cal_9point_avg(startx, endx);
+//        }
+        updateSmoothedValue(startx, endx);
+        updateUnsmoothedSection(endx, listSize);
+    }
+
+    private int getIndexById(int id) {
+        for (int i = 0; i < originalPoints.size(); i++) {
+            if (originalPoints != null && (originalPoints.get(i).getId() == id)) {
+                return i;
+            }
+        }
+        return -1;// not there is list
+    }
+
+//Update selected section
+    public void updateUnsmoothedSection(int start, int end) {
+//        clearAvgTable();
+        String fullarrays = "";
+        System.out.println(start + " " + (end - 1));
+        for (int i = start; i < end; i++) {
+            String twoarrays = "(" + originalPoints.get(i).getWavenumber() + " , " + originalPoints.get(i).getTransmittance() + ")";
+            fullarrays = fullarrays + twoarrays + ",";
+        }
+        fullarrays = fullarrays.substring(0, fullarrays.length() - 1);
+
+        String sql = "INSERT INTO avg_data (wavenumber,transmittance)  VALUES " + fullarrays;
+        ResultSet rs = null;
+        PreparedStatement pst = null;
+
+        try {
+            pst = conn.prepareStatement(sql);
+            pst.executeUpdate();
+
+        } catch (Exception e) {
+            System.out.println(e);
+        } finally {
+            try {
+                rs.close();
+                pst.close();
+            } catch (Exception e) {
+
+            }
+        }
+
+    }
+
+    public void updateSmoothedValue(int start, int end) {
+//        clearAvgTable();
+        String fullarrays = "";
+        int i, j;
+        System.out.println(start + " " + (end - 1));
+        for (i = start, j = 0; i < end && j < smoothedPoints.size(); i++, j++) { //this line has used for i,j both at once
+            String twoarrays = "(" + originalPoints.get(i).getWavenumber() + " , " + smoothedPoints.get(j) + ")";
+            fullarrays = fullarrays + twoarrays + ",";
+        }
+        fullarrays = fullarrays.substring(0, fullarrays.length() - 1);
+
+        String sql = "INSERT INTO avg_data (wavenumber,transmittance)  VALUES " + fullarrays;
+
+        ResultSet rs = null;
+        PreparedStatement pst = null;
+
+        try {
+            pst = conn.prepareStatement(sql);
+            pst.executeUpdate();
+
+        } catch (Exception e) {
+            System.out.println(e);
+        } finally {
+            try {
+                rs.close();
+                pst.close();
+            } catch (Exception e) {
+
+            }
+        }
+
+    }
 
 }

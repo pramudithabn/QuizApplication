@@ -22,7 +22,7 @@ import org.jfree.chart.plot.Marker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.ui.Layer;
 
-final class  MouseMarker extends MouseAdapter{
+public final class  MouseMarker extends MouseAdapter{
         private Marker marker;
         private static Double markerStart = Double.NaN;
         private static Double markerEnd = Double.NaN;

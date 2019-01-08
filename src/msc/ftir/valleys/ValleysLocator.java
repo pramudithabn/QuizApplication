@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package msc.ftir.main;
+package msc.ftir.valleys;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -11,12 +11,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import msc.ftir.main.InputData;
+import msc.ftir.main.Javaconnect;
 
 /**
  *
@@ -30,8 +31,10 @@ public class ValleysLocator {
     private static ArrayList<BigDecimal> order1_derivatives = new ArrayList<BigDecimal>();
     private ArrayList<BigDecimal> order2_derivatives = new ArrayList<BigDecimal>();
     private SortedMap<BigDecimal, BigDecimal> valleyCandidates = new TreeMap<BigDecimal, BigDecimal>();
+    private SortedMap<BigDecimal, BigDecimal> tempvalleyCandidates = new TreeMap<BigDecimal, BigDecimal>();
     private SortedMap<BigDecimal, BigDecimal> firstOrderDerivatives = new TreeMap<BigDecimal, BigDecimal>();
     private ArrayList<BigDecimal> hList = new ArrayList<BigDecimal>();
+    private static volatile ValleysLocator instance;
     private BigDecimal minH;
     private BigDecimal maxH;
     private double hScale;
@@ -53,16 +56,13 @@ public class ValleysLocator {
         qdata();
 
     }
-
-    public static void main(String[] args) {
-        ValleysLocator v = new ValleysLocator();
-//        v.cal_1storder_derivative();
-        System.out.println("Size origi=" + originalList.size());
-//        System.out.println("Size deri=" + v.firstOrderDerivatives.size());
-
-//        v.find_valley_candidates();
-        v.addCandidates();
+    
+     public static ValleysLocator getInstance() {
+        instance = new ValleysLocator();
+        return instance;
     }
+
+
 
     public ArrayList<InputData> qdata() {
 
@@ -171,6 +171,28 @@ public class ValleysLocator {
 
     }
 
+    public void removeBelowThreshold(double threshold) {
+        for (BigDecimal wavelegth : valleyCandidates.keySet()) {
+
+            double key = wavelegth.doubleValue();
+            double value = valleyCandidates.get(wavelegth).doubleValue();
+
+            if (value < threshold) {
+                valleyCandidates.headMap(BigDecimal.valueOf(threshold)).clear();
+            } else {
+                return;
+            }
+        }
+
+        for (BigDecimal name : valleyCandidates.keySet()) {
+
+            String key = name.toString();
+            String value = valleyCandidates.get(name).toString();
+            System.out.println(key + " " + value);
+
+        }
+    }
+
     public void addCandidates() {
 
         double x1 = 0, x2 = 0, x3 = 0;
@@ -197,15 +219,13 @@ public class ValleysLocator {
 //            h1 = Math.abs(y2 - y1);
 //            h2 = Math.abs(y3 - y2);
 //
-//            hconst = det_threshold(10);
+//            hconst = discard_below_threshold(10);
 //            System.out.println(hconst);
-            
             if (d1 > 0 && d2 < 0) {
 //                if ((h1 >= hconst) && (h2 >= hconst)) {
-                    valleyCandidates.put(x_val, y_val);
+                valleyCandidates.put(x_val, y_val);
 //                }
             }
-           
 
         }
 //        for (BigDecimal wvl : valleyCandidates.keySet()) {
@@ -215,14 +235,14 @@ public class ValleysLocator {
 //            System.out.println(key + " " + value);
 //
 //        }
-         System.out.println(valleyCandidates.size()); 
+      
 
     }
-    
+
     public void addCandidates4neighbors() {
 
         double x1 = 0, x2 = 0, x3 = 0, x4 = 0, x5 = 0;
-        double y1 = 0, y2 = 0, y3 = 0,y4 = 0, y5 = 0;
+        double y1 = 0, y2 = 0, y3 = 0, y4 = 0, y5 = 0;
         BigDecimal x_val = null, y_val = null;
         double d1 = 0, d2 = 0;//neighbours 1
         double n1 = 0, n2 = 0;//neighbours 2
@@ -243,25 +263,23 @@ public class ValleysLocator {
             y4 = originalList.get(i + 3).getTransmittance().doubleValue();
             y5 = originalList.get(i + 4).getTransmittance().doubleValue();
 //            y_val = originalList.get(i + 1).getTransmittance();
-             y_val = originalList.get(i + 2).getTransmittance();
+            y_val = originalList.get(i + 2).getTransmittance();
 
 //            d1 = (y2 - y1) / (x2 - x1);
 //            d2 = (y3 - y2) / (x3 - x2);
-            
             d1 = (y3 - y2) / (x3 - x2);
             d2 = (y4 - y3) / (x4 - x3);
-            
+
             n1 = (y2 - y1) / (x2 - x1);
             n2 = (y5 - y4) / (x5 - x4);
-            
 
 //            double h1, h2, hconst;
 //            h1 = Math.abs(y2 - y1);
 //            h2 = Math.abs(y3 - y2);
 //
-//            hconst = det_threshold(10);
+//            hconst = discard_below_threshold(10);
 //            System.out.println(hconst);
-            if (d1 > 0 && d2 < 0 && n1>0 && n2<0) {
+            if (d1 > 0 && d2 < 0 && n1 > 0 && n2 < 0) {
 //                if ((h1 >= hconst) && (h2 >= hconst)) {
                 valleyCandidates.put(x_val, y_val);
 //                }
@@ -278,32 +296,19 @@ public class ValleysLocator {
 
     }
 
+    public void discard_below_threshold(BigDecimal c) {
 
-    public double det_threshold(int c) {
+        for (BigDecimal wvl : valleyCandidates.keySet()) {
 
-        BigDecimal diff = null;
+            double value = valleyCandidates.get(wvl).doubleValue();
+            BigDecimal key = wvl;
 
-        for (int i = 0; i < listSize - 2; i++) {
-
-            BigDecimal n1 = originalList.get(i).getTransmittance();
-            BigDecimal n2 = originalList.get(i + 1).getTransmittance();
-
-            diff = n1.subtract(n2);
-
-            BigDecimal d = diff.abs();
-
-            hList.add(d);
-
+            if (value > c.doubleValue()) {
+                tempvalleyCandidates.put(key,BigDecimal.valueOf(value));
+            }
         }
-
-        int minIndex = hList.indexOf(Collections.min(hList));
-        int maxIndex = hList.indexOf(Collections.max(hList));
-
-        minH = hList.get(minIndex);
-        maxH = hList.get(maxIndex);
-
-//        hScale = (maxH.doubleValue() - minH.doubleValue()) * 0.01 * c;
-        hScale = (maxH.doubleValue() + minH.doubleValue()) / 2;
-        return hScale;
+        
+        valleyCandidates.clear();
+        valleyCandidates = tempvalleyCandidates;
     }
 }
