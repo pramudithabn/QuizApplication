@@ -187,12 +187,6 @@ public class MainWindow extends javax.swing.JFrame {
         Valleys = new javax.swing.JButton();
         jLabel7 = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
-        interpolButton = new javax.swing.JButton();
-        jLabel8 = new javax.swing.JLabel();
-        interpolationType = new javax.swing.JComboBox<>();
-        regressionType = new javax.swing.JComboBox<>();
-        jLabel6 = new javax.swing.JLabel();
-        line = new javax.swing.JButton();
         jLabel9 = new javax.swing.JLabel();
         baselineMethodCombo = new javax.swing.JComboBox<>();
         jLabel10 = new javax.swing.JLabel();
@@ -557,38 +551,6 @@ public class MainWindow extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Valleys    ", jPanel2);
 
-        interpolButton.setText("Interpolate");
-        interpolButton.setFocusable(false);
-        interpolButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        interpolButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        interpolButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                interpolButtonActionPerformed(evt);
-            }
-        });
-
-        jLabel8.setFont(new java.awt.Font("Tahoma", 3, 12)); // NOI18N
-        jLabel8.setText("Interpolation Method");
-
-        interpolationType.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        interpolationType.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Select...", "Line", "Spline", "Cubic Spline" }));
-
-        regressionType.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        regressionType.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Select...", "Line", "Spline" }));
-
-        jLabel6.setFont(new java.awt.Font("Tahoma", 3, 12)); // NOI18N
-        jLabel6.setText("Regression line");
-
-        line.setText("Plot");
-        line.setFocusable(false);
-        line.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        line.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        line.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                lineActionPerformed(evt);
-            }
-        });
-
         jLabel9.setFont(new java.awt.Font("Tahoma", 3, 12)); // NOI18N
         jLabel9.setText("Connect points by");
 
@@ -630,23 +592,9 @@ public class MainWindow extends javax.swing.JFrame {
                 .addGap(30, 30, 30)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(regressionType, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(line, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(68, 68, 68)
-                        .addComponent(baselineButton))
-                    .addGroup(jPanel3Layout.createSequentialGroup()
                         .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(baselineMethodCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(interpolationType, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(interpolButton))
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -654,13 +602,12 @@ public class MainWindow extends javax.swing.JFrame {
                             .addComponent(splineCheckBox)
                             .addComponent(lineCheckBox)
                             .addComponent(cubicSplineCheckBox))))
-                .addContainerGap(111, Short.MAX_VALUE))
+                .addContainerGap(341, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(baselineButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(126, 126, 126))
         );
-
-        jPanel3Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {baselineMethodCombo, interpolationType, regressionType});
-
-        jPanel3Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {interpolButton, line});
-
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
@@ -668,7 +615,7 @@ public class MainWindow extends javax.swing.JFrame {
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel9)
                     .addComponent(baselineMethodCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 12, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel10)
                     .addComponent(lineCheckBox))
@@ -676,26 +623,10 @@ public class MainWindow extends javax.swing.JFrame {
                 .addComponent(splineCheckBox)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(cubicSplineCheckBox)
-                .addGap(18, 18, 18)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel8)
-                            .addComponent(interpolationType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(18, 18, 18)
-                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(jLabel6)
-                                .addComponent(regressionType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(line, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(baselineButton)))
-                    .addComponent(interpolButton))
-                .addGap(19, 19, 19))
+                .addGap(34, 34, 34)
+                .addComponent(baselineButton, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(33, 33, 33))
         );
-
-        jPanel3Layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {baselineMethodCombo, interpolationType, regressionType});
-
-        jPanel3Layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {interpolButton, line});
 
         jTabbedPane1.addTab("Baseline   ", jPanel3);
 
@@ -1541,50 +1472,6 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_baselineButtonActionPerformed
 
-    private void interpolButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_interpolButtonActionPerformed
-        try {
-            SortedMap<BigDecimal, BigDecimal> mapi = null;
-
-            Interpolator intpol = new Interpolator();
-
-            if (interpolationType.getSelectedItem().toString().equalsIgnoreCase("Line")) {
-                mapi = intpol.linearInterp(createValleyDataset(ml.getValleyCandidates()), ml.getValleyCandidates().size());
-            }
-            if (interpolationType.getSelectedItem().toString().equalsIgnoreCase("Spline")) {
-                mapi = intpol.linearInterp(createValleyDataset(ml.getValleyCandidates()), ml.getValleyCandidates().size());
-            }
-            if (interpolationType.getSelectedItem().toString().equalsIgnoreCase("Cubic Spline")) {
-                mapi = intpol.cubicInterp(createValleyDataset(ml.getValleyCandidates()), ml.getValleyCandidates().size());
-            }
-            //            combined_charts3(createValleyDataset(ml.getValleyCandidates()),createSmoothedDataset(),createDataset(mapi),rsPanel);
-            combined2Charts(createDataset(mapi, "Interpolated data"), createSmoothedDataset(), rsPanel);
-            //            createDuel(createDataset(mapi), createSmoothedDataset(), rsPanel);
-            //        create_spectrum(mapi, rsPanel);
-        } catch (SQLException ex) {
-            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }//GEN-LAST:event_interpolButtonActionPerformed
-
-    private void lineActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lineActionPerformed
-
-        bc = new BaselineCorrection();
-
-        if (regressionType.getSelectedItem().toString().equalsIgnoreCase("Line")) {
-            bc.drawRegressionLine(duelchart, createValleyDataset(ml.getValleyCandidates()), lowerBoundX, upperBoundX);
-        }
-
-        if (regressionType.getSelectedItem().toString().equalsIgnoreCase("Spline")) {
-            bc.drawPolynomialFit(duelchart, createValleyDataset(ml.getValleyCandidates()), lowerBoundX, upperBoundX);
-        }
-
-        if (regressionType.getSelectedItem().toString().equalsIgnoreCase("Select...")) {
-            //            bc.drawRegressionLine(duelchart, input_dataset, lowerBoundX, upperBoundX);//good to get default trend line
-        }
-
-        create_spectrum(bc.getHdifferenceBetweenPoints(), rsPanel, "Baseline Corrected");
-
-    }//GEN-LAST:event_lineActionPerformed
-
     /**
      * @param args the command line arguments
      */
@@ -1615,8 +1502,6 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JLabel filterPassLabel;
     private javax.swing.JRadioButton fivepoints;
     private javax.swing.JMenu helpMenu;
-    private javax.swing.JButton interpolButton;
-    private javax.swing.JComboBox<String> interpolationType;
     private javax.swing.JButton iterateButton;
     private javax.swing.JButton jButton1;
     private javax.swing.JDialog jDialog1;
@@ -1626,9 +1511,7 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JLayeredPane jLayeredPane1;
     private javax.swing.JMenuBar jMenuBar1;
@@ -1641,7 +1524,6 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JToolBar jToolBar;
-    private javax.swing.JButton line;
     private javax.swing.JCheckBox lineCheckBox;
     private javax.swing.JMenuItem newMenuItem;
     private javax.swing.JRadioButton ninepoints;
@@ -1651,7 +1533,6 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JButton peakButton;
     private javax.swing.ButtonGroup pointsbuttonGroup;
     private javax.swing.JMenuItem printMenuItem;
-    private javax.swing.JComboBox<String> regressionType;
     private javax.swing.JButton resetSmoothButton;
     private javax.swing.JPanel resultsPanel;
     public javax.swing.JPanel rsPanel;
