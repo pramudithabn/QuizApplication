@@ -39,6 +39,8 @@ public class ValleysLocator {
     private BigDecimal maxH;
     private double hScale;
     private double c;
+    private static ArrayList<InputData> originalList = new ArrayList<InputData>();
+    private int listSize;
 
     public SortedMap<BigDecimal, BigDecimal> getValleyCandidates() {
         return valleyCandidates;
@@ -47,8 +49,7 @@ public class ValleysLocator {
     public void setValleyCandidates(SortedMap<BigDecimal, BigDecimal> valleyCandidates) {
         this.valleyCandidates = valleyCandidates;
     }
-    private static ArrayList<InputData> originalList = new ArrayList<InputData>();
-    private int listSize;
+    
 
     public ValleysLocator() {
         conn = Javaconnect.ConnecrDb();
@@ -56,13 +57,11 @@ public class ValleysLocator {
         qdata();
 
     }
-    
-     public static ValleysLocator getInstance() {
+
+    public static ValleysLocator getInstance() {
         instance = new ValleysLocator();
         return instance;
     }
-
-
 
     public ArrayList<InputData> qdata() {
 
@@ -200,17 +199,17 @@ public class ValleysLocator {
         BigDecimal x_val = null, y_val = null;
         double d1 = 0, d2 = 0;
 
-        for (int i = 0; i < listSize - 2; i++) {
+        for (int i = 1; i < listSize - 2; i++) {
 
-            x1 = originalList.get(i).getWavenumber().doubleValue();
-            x2 = originalList.get(i + 1).getWavenumber().doubleValue();
-            x3 = originalList.get(i + 2).getWavenumber().doubleValue();
-            x_val = originalList.get(i + 1).getWavenumber();
+            x1 = originalList.get(i - 1).getWavenumber().doubleValue();
+            x2 = originalList.get(i).getWavenumber().doubleValue();
+            x3 = originalList.get(i + 1).getWavenumber().doubleValue();
+            x_val = originalList.get(i).getWavenumber();
 
-            y1 = originalList.get(i).getTransmittance().doubleValue();
-            y2 = originalList.get(i + 1).getTransmittance().doubleValue();
-            y3 = originalList.get(i + 2).getTransmittance().doubleValue();
-            y_val = originalList.get(i + 1).getTransmittance();
+            y1 = originalList.get(i - 1).getTransmittance().doubleValue();
+            y2 = originalList.get(i).getTransmittance().doubleValue();
+            y3 = originalList.get(i + 1).getTransmittance().doubleValue();
+            y_val = originalList.get(i).getTransmittance();
 
             d1 = (y2 - y1) / (x2 - x1);
             d2 = (y3 - y2) / (x3 - x2);
@@ -235,7 +234,6 @@ public class ValleysLocator {
 //            System.out.println(key + " " + value);
 //
 //        }
-      
 
     }
 
@@ -304,10 +302,10 @@ public class ValleysLocator {
             BigDecimal key = wvl;
 
             if (value > c.doubleValue()) {
-                tempvalleyCandidates.put(key,BigDecimal.valueOf(value));
+                tempvalleyCandidates.put(key, BigDecimal.valueOf(value));
             }
         }
-        
+
         valleyCandidates.clear();
         valleyCandidates = tempvalleyCandidates;
     }

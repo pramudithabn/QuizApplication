@@ -42,12 +42,11 @@ public class Scale {
 
     public Scale() {
         conn = Javaconnect.ConnecrDb();
-        qdata();
-        fixScale(0, 100);
+       
     }
 
-    private ArrayList<InputData> qdata() {
-        String sql = "select * from input_data";
+    private ArrayList<InputData> qdata(String table) {
+        String sql = "select * from "+table;
         ResultSet rs = null;
         PreparedStatement pst = null;
 
@@ -89,8 +88,10 @@ public class Scale {
 
     }
 
-    public void fixScale(int start, int end) {
-
+    public void fixScale(int start, int end, String table) {
+                
+        
+        qdata(table);
         double max = findMaxT().doubleValue();
         double min = findMinT().doubleValue();
         double f;
