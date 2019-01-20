@@ -64,12 +64,12 @@ import org.jfree.ui.TextAnchor;
  */
 public class MainWindow extends javax.swing.JFrame {
 
-    Connection conn = null;
-    ResultSet rs = null;
-    PreparedStatement pst = null;
+    private static Connection conn = null;
+    private ResultSet rs = null;
+    private PreparedStatement pst = null;
     private String fileName;
-    ArrayList<Integer> errorLine = new ArrayList<>();
-    boolean dataformatvalidity;
+    private ArrayList<Integer> errorLine = new ArrayList<>();
+    private boolean dataformatvalidity;
     public Object[][] dataArray = new Object[1000][2];
     private FileType fileType;
     private int sliderValue;
@@ -93,6 +93,7 @@ public class MainWindow extends javax.swing.JFrame {
     private double lowerBoundT = 0, upperBoundT = 0;
     private JFreeChart spec = null, chart = null, duelchart = null, smoothedSpec = null;
     private XYDataset input_dataset = null;
+    private int sliderPreviousValue, sliderCurrentValue;
 
     public static int getPoints() {
         return points;
@@ -333,6 +334,14 @@ public class MainWindow extends javax.swing.JFrame {
         smoothningSlider.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 smoothningSliderStateChanged(evt);
+            }
+        });
+        smoothningSlider.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                smoothningSliderMousePressed(evt);
+            }
+            public void mouseReleased(java.awt.event.MouseEvent evt) {
+                smoothningSliderMouseReleased(evt);
             }
         });
 
@@ -985,38 +994,24 @@ public class MainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_smootheSelectionActionPerformed
 
     private void ValleysActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ValleysActionPerformed
-
-        try {
-            ml = new ValleysLocator();
-            ml.addCandidates();
-
-            createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset(), comPanel);
-
-        } catch (SQLException ex) {
-            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        showValleys();
+//        try {
+//            ml = new ValleysLocator();
+//            ml.addCandidates();
+//
+//            createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset(), comPanel);
+//
+//        } catch (SQLException ex) {
+//            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+//        }
     }//GEN-LAST:event_ValleysActionPerformed
 
     private void smoothningSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_smoothningSliderStateChanged
-
-//        smoothningSlider.addChangeListener(new ChangeListener() {
-//
-//            public void stateChanged(ChangeEvent e) {
-//                if (!(smoothningSlider.getValueIsAdjusting())) {
-//                    int sliderValue = smoothningSlider.getValue();
-//                    System.out.println(sliderValue);
-//                    DefaultSmooth ls = new DefaultSmooth();
-//                    ls.general_avg_algorithm_3point(sliderValue);
-//                    createSmoothed_spectrum(ls.rowDataList, ls.avgPointList);
-//                    ls.updateSmoothedValue();
-//                }
-//
-//            }
-//
-//        });
+        /*
         smoothningSlider.addChangeListener(new ChangeListener() {
 
             public void stateChanged(ChangeEvent e) {
+
                 if (!(smoothningSlider.getValueIsAdjusting())) {
                     int sliderValue = smoothningSlider.getValue();
                     Scale s = new Scale();
@@ -1038,7 +1033,10 @@ public class MainWindow extends javax.swing.JFrame {
 //                           
 //                            createSmoothed_spectrum(ds.rowDataList, ds.avgPointList); //old
                             try {
-                                combined2Charts(input_dataset, createSmoothedDataset(), rsPanel);
+                                XYDataset xyDataSet = createSmoothedDataset();
+
+                                combined2Charts(input_dataset, xyDataSet, rsPanel);
+
                             } catch (SQLException ex) {
                                 Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
                             }
@@ -1174,7 +1172,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         });
 
-
+         */
     }//GEN-LAST:event_smoothningSliderStateChanged
     private boolean checkValidity() {
 
@@ -1423,54 +1421,56 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void baselineButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_baselineButtonActionPerformed
         try {
-
             if (baselineMethodCombo.getSelectedItem().toString().equalsIgnoreCase("Regression")) {
-                
                 bc = new BaselineCorrection();
-                System.out.println("Regression");
-
                 if (lineCheckBox.isSelected()) {
-                    System.out.println("Line");
                     bc.drawRegressionLine(duelchart, createValleyDataset(ml.getValleyCandidates()), lowerBoundX, upperBoundX);
-                    
                 }
                 if (splineCheckBox.isSelected()) {
-                    System.out.println("Spline");
                     bc.drawPolynomialFit(duelchart, createValleyDataset(ml.getValleyCandidates()), lowerBoundX, upperBoundX);
-                    
                 }
                 create_spectrum(bc.getHdifferenceBetweenPoints(), rsPanel, "Baseline Corrected");
-
             }
             if (baselineMethodCombo.getSelectedItem().toString().equalsIgnoreCase("Interpolation")) {
-                System.out.println("Interpolation");
-                 
                 SortedMap<BigDecimal, BigDecimal> mapi = null;
-
                 Interpolator intpol = new Interpolator();
 
                 if (lineCheckBox.isSelected()) {
-                    System.out.println("Line");
                     mapi = intpol.linearInterp(createValleyDataset(ml.getValleyCandidates()), ml.getValleyCandidates().size());
                 }
                 if (splineCheckBox.isSelected()) {
-                    System.out.println("Spline");
                     mapi = intpol.linearInterp(createValleyDataset(ml.getValleyCandidates()), ml.getValleyCandidates().size());
-                    
                 }
                 if (cubicSplineCheckBox.isSelected()) {
-                    System.out.println("Cubics");
                     mapi = intpol.cubicInterp(createValleyDataset(ml.getValleyCandidates()), ml.getValleyCandidates().size());
-                    
                 }
                 combined2Charts(createDataset(mapi, "Interpolated data"), createSmoothedDataset(), rsPanel);
-
             }
-
         } catch (SQLException ex) {
             Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_baselineButtonActionPerformed
+
+    private void smoothningSliderMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_smoothningSliderMouseReleased
+
+        sliderCurrentValue = smoothningSlider.getValue();
+
+        if (sliderCurrentValue < sliderPreviousValue) {
+            System.out.println("Decreasing.");
+            reverseSmooth();
+
+        } else if (sliderCurrentValue > sliderPreviousValue) {
+            System.out.println("Increaseing.");
+            performSmooth();
+        }
+
+        sliderPreviousValue = sliderCurrentValue;
+
+    }//GEN-LAST:event_smoothningSliderMouseReleased
+
+    private void smoothningSliderMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_smoothningSliderMousePressed
+        sliderPreviousValue = smoothningSlider.getValue();
+    }//GEN-LAST:event_smoothningSliderMousePressed
 
     /**
      * @param args the command line arguments
@@ -2377,10 +2377,11 @@ public class MainWindow extends javax.swing.JFrame {
     }
 
     private XYDataset createSmoothedDataset() throws SQLException {
+
         String query1 = "select WAVENUMBER, TRANSMITTANCE AS 'Smoothed Spectrum' from avg_data";
         JDBCXYDataset dataset = new JDBCXYDataset(conn, query1);
-
         return dataset;
+
     }
 
     private XYDataset createInputDataset() throws SQLException {
@@ -2410,5 +2411,245 @@ public class MainWindow extends javax.swing.JFrame {
             Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
         }
 
+    }
+
+    public void performSmooth() {
+        int sliderValue = smoothningSlider.getValue();
+
+        if (checkValidity() && sliderValue != 0) {
+            val_label1.setText(null);
+            val_label2.setText(null);
+
+            if (smAlgoCombo.getSelectedItem().toString().equalsIgnoreCase("Default")) {
+                algorithm = 1;
+                ds = DefaultSmooth.getInstance();
+
+                for (int i = 0; i < sliderValue - sliderPreviousValue; i++) {
+                    ds.general_avg_algorithm_3point(sliderValue);
+                }
+                try {
+                    combined2Charts(input_dataset, createSmoothedDataset(), rsPanel);
+                } catch (SQLException ex) {
+                    Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                filterPassLabel.setText(Integer.toString(sliderValue));
+            }
+
+            if (smAlgoCombo.getSelectedItem().toString().equalsIgnoreCase("Unweighted Sliding Average ")) {
+                algorithm = 2;
+                ls = SlidingAvgSmooth.getInstance();
+                if (threepoints.isSelected()) {
+                    points = 3;
+                    for (int i = 0; i < sliderValue - sliderPreviousValue; i++) {
+                        ls.cal_5point_avg();
+//                                    createSmoothed_spectrum(ls.originalPoints, ls.smoothedPoints);//old
+                        try {
+                            combined2Charts(input_dataset, createSmoothedDataset(), rsPanel);
+                        } catch (SQLException ex) {
+                            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                } else if (fivepoints.isSelected()) {
+                    points = 5;
+                    for (int i = 0; i < sliderValue - sliderPreviousValue; i++) {
+                        ls.cal_5point_avg();
+//                                    createSmoothed_spectrum(ls.originalPoints, ls.smoothedPoints);//old
+                        try {
+                            combined2Charts(input_dataset, createSmoothedDataset(), rsPanel);
+                        } catch (SQLException ex) {
+                            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                } else if (sevenpoints.isSelected()) {
+                    points = 7;
+                    for (int i = 0; i < sliderValue - sliderPreviousValue; i++) {
+                        ls.cal_7point_avg();
+//                                    createSmoothed_spectrum(ls.originalPoints, ls.smoothedPoints);//old
+                        try {
+                            combined2Charts(input_dataset, createSmoothedDataset(), rsPanel);
+                        } catch (SQLException ex) {
+                            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                } else if (ninepoints.isSelected()) {
+                    points = 9;
+                    for (int i = 0; i < sliderValue - sliderPreviousValue; i++) {
+                        ls.cal_9point_avg();
+//                                    createSmoothed_spectrum(ls.originalPoints, ls.smoothedPoints);//old
+                        try {
+                            combined2Charts(input_dataset, createSmoothedDataset(), rsPanel);
+                        } catch (SQLException ex) {
+                            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+                filterPassLabel.setText(Integer.toString(ls.count));
+            }
+            if (smAlgoCombo.getSelectedItem().toString().equalsIgnoreCase("Triangular Smoothing")) {
+                algorithm = 3;
+                tri = TriangularSmooth.getInstance();
+                for (int i = 0; i < sliderValue - sliderPreviousValue; i++) {
+                    tri.cal_5point_avg();
+//                                createSmoothed_spectrum(tri.originalPoints, tri.smoothedPoints);
+                    try {
+                        combined2Charts(input_dataset, createSmoothedDataset(), rsPanel);
+                    } catch (SQLException ex) {
+                        Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                filterPassLabel.setText(Integer.toString(ls.count));
+            }
+            if (smAlgoCombo.getSelectedItem().toString().equalsIgnoreCase("Savitzky-Golay Filter")) {
+                algorithm = 4;
+                sgf = SavitzkyGolayFilter.getInstance();
+                if (threepoints.isSelected()) {
+                    points = 3;
+                    for (int i = 0; i < sliderValue - sliderPreviousValue; i++) {
+                        sgf.applyFilter_3points();
+//                                    createSmoothed_spectrum(ls.originalPoints, ls.smoothedPoints);//old
+                        try {
+                            combined2Charts(input_dataset, createSmoothedDataset(), rsPanel);
+                        } catch (SQLException ex) {
+                            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                } else if (fivepoints.isSelected()) {
+                    points = 5;
+                    for (int i = 0; i < sliderValue - sliderPreviousValue; i++) {
+                        sgf.applyFilter_5points();
+//                                    createSmoothed_spectrum(ls.originalPoints, ls.smoothedPoints);//old
+                        try {
+                            combined2Charts(input_dataset, createSmoothedDataset(), rsPanel);
+                        } catch (SQLException ex) {
+                            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+                filterPassLabel.setText(Integer.toString(sgf.count));
+            }
+            showValleys();
+        }
+
+    }
+
+    private void reverseSmooth() {
+        
+        int sliderValue = smoothningSlider.getValue();
+
+        if (checkValidity() && sliderValue != 0) {
+            val_label1.setText(null);
+            val_label2.setText(null);
+
+            if (smAlgoCombo.getSelectedItem().toString().equalsIgnoreCase("Default")) {
+                algorithm = 1;
+                DefaultSmooth ds1 = new DefaultSmooth();
+
+                for (int i = 0; i < sliderValue; i++) {
+                    ds1.general_avg_algorithm_3point(sliderValue);
+                }
+                try {
+                    combined2Charts(input_dataset, createSmoothedDataset(), rsPanel);
+                } catch (SQLException ex) {
+                    Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                filterPassLabel.setText(Integer.toString(sliderValue));
+            }
+
+            if (smAlgoCombo.getSelectedItem().toString().equalsIgnoreCase("Unweighted Sliding Average ")) {
+                algorithm = 2;
+                SlidingAvgSmooth s1 = new SlidingAvgSmooth();
+                if (threepoints.isSelected()) {
+                    points = 3;
+                    for (int i = 0; i < sliderValue; i++) {
+                        s1.cal_3point_avg();
+//                                    createSmoothed_spectrum(ls.originalPoints, ls.smoothedPoints);//old
+                        try {
+                            combined2Charts(input_dataset, createSmoothedDataset(), rsPanel);
+                        } catch (SQLException ex) {
+                            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                } else if (fivepoints.isSelected()) {
+                    points = 5;
+                    for (int i = 0; i < sliderValue; i++) {
+                        s1.cal_5point_avg();
+//                                    createSmoothed_spectrum(ls.originalPoints, ls.smoothedPoints);//old
+                        try {
+                            combined2Charts(input_dataset, createSmoothedDataset(), rsPanel);
+                        } catch (SQLException ex) {
+                            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                } else if (sevenpoints.isSelected()) {
+                    points = 7;
+                    for (int i = 0; i < sliderValue; i++) {
+                        s1.cal_7point_avg();
+//                                    createSmoothed_spectrum(ls.originalPoints, ls.smoothedPoints);//old
+                        try {
+                            combined2Charts(input_dataset, createSmoothedDataset(), rsPanel);
+                        } catch (SQLException ex) {
+                            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                } else if (ninepoints.isSelected()) {
+                    points = 9;
+                    for (int i = 0; i < sliderValue; i++) {
+                        s1.cal_9point_avg();
+//                                    createSmoothed_spectrum(ls.originalPoints, ls.smoothedPoints);//old
+                        try {
+                            combined2Charts(input_dataset, createSmoothedDataset(), rsPanel);
+                        } catch (SQLException ex) {
+                            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+                filterPassLabel.setText(Integer.toString(ls.count));
+            }
+            if (smAlgoCombo.getSelectedItem().toString().equalsIgnoreCase("Triangular Smoothing")) {
+                algorithm = 3;
+                tri.reset();
+                tri = TriangularSmooth.getInstance();
+                for (int i = 0; i < sliderValue; i++) {
+                    tri.cal_5point_avg();
+//                                createSmoothed_spectrum(tri.originalPoints, tri.smoothedPoints);
+                    try {
+                        combined2Charts(input_dataset, createSmoothedDataset(), rsPanel);
+                    } catch (SQLException ex) {
+                        Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                filterPassLabel.setText(Integer.toString(ls.count));
+            }
+            if (smAlgoCombo.getSelectedItem().toString().equalsIgnoreCase("Savitzky-Golay Filter")) {
+                algorithm = 4;
+                sgf.reset();
+                sgf = SavitzkyGolayFilter.getInstance();
+                if (threepoints.isSelected()) {
+                    points = 3;
+                    for (int i = 0; i < sliderValue; i++) {
+                        sgf.applyFilter_3points();
+//                                    createSmoothed_spectrum(ls.originalPoints, ls.smoothedPoints);//old
+                        try {
+                            combined2Charts(input_dataset, createSmoothedDataset(), rsPanel);
+                        } catch (SQLException ex) {
+                            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                } else if (fivepoints.isSelected()) {
+                    points = 5;
+                    for (int i = 0; i < sliderValue; i++) {
+                        sgf.applyFilter_5points();
+//                                    createSmoothed_spectrum(ls.originalPoints, ls.smoothedPoints);//old
+                        try {
+                            combined2Charts(input_dataset, createSmoothedDataset(), rsPanel);
+                        } catch (SQLException ex) {
+                            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+                filterPassLabel.setText(Integer.toString(sgf.count));
+            }
+            showValleys();
+        }
     }
 }

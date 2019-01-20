@@ -34,6 +34,7 @@ public class TriangularSmooth implements SlidingWindow {
     public ArrayList<BigDecimal> smoothedPoints = new ArrayList<BigDecimal>();
     private static volatile TriangularSmooth instance;
     private int listSize = 0 ;
+    public static int count = 0;
  
 
     public TriangularSmooth() {
@@ -49,6 +50,8 @@ public class TriangularSmooth implements SlidingWindow {
 //    }
     public void reset() {
         instance = null;
+        count = 0;
+        qdata();
     }
 
     public void reverse() {

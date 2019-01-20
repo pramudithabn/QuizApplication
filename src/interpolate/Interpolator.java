@@ -11,7 +11,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
@@ -37,6 +36,7 @@ public class Interpolator {
     private static ArrayList<InputData> originalList = new ArrayList<InputData>();
     private ArrayList<BigDecimal> wavelenths = new ArrayList<BigDecimal>();
     private int listSize;
+    private SortedMap<BigDecimal, BigDecimal> substractedPointList = new TreeMap<BigDecimal, BigDecimal>();
 
     public Interpolator() {
         conn = Javaconnect.ConnecrDb();
@@ -99,13 +99,9 @@ public class Interpolator {
             }
 
         }
-      
-//        System.out.println(x[0] + " " + x[x.length - 1]);
-//        System.out.println(wavelenths.get(0));
 
         LinearInterpolator li = new LinearInterpolator(); // or other interpolator
         PolynomialSplineFunction psf = li.interpolate(x, y);
-        
 
         double[] yi = new double[wavelenths.size()];
         for (int i = 0; i < wavelenths.size(); i++) {
@@ -114,10 +110,9 @@ public class Interpolator {
 
             interpolatedDataset.put(wavelenths.get(i), BigDecimal.valueOf(yi[i]));
         }
-        System.out.println(interpolatedDataset.size());
         return interpolatedDataset;
     }
-    
+
     public SortedMap<BigDecimal, BigDecimal> splineInterp(XYDataset dataset, int size) {
 
         double[] y = new double[size];
@@ -140,17 +135,14 @@ public class Interpolator {
             }
 
         }
-      
+
         System.out.println(x[0] + " " + x[x.length - 1]);
         System.out.println(wavelenths.get(0));
 
         SplineInterpolator li = new SplineInterpolator(); // or other interpolator
         PolynomialSplineFunction psf = li.interpolate(x, y);
-        
+
 //        UnivariateInterpolator
-         
-
-
         double[] yi = new double[wavelenths.size()];
         for (int i = 0; i < wavelenths.size(); i++) {
 //            yi[i] = psf.value(xi[i]);
@@ -158,11 +150,11 @@ public class Interpolator {
 
             interpolatedDataset.put(wavelenths.get(i), BigDecimal.valueOf(yi[i]));
         }
-//        System.out.println(interpolatedDataset.size());
+
         return interpolatedDataset;
     }
-    
-      public SortedMap<BigDecimal, BigDecimal> cubicInterp(XYDataset dataset, int size) {
+
+    public SortedMap<BigDecimal, BigDecimal> cubicInterp(XYDataset dataset, int size) {
 
         double[] y = new double[size];
         double[] x = new double[size];
@@ -184,17 +176,14 @@ public class Interpolator {
             }
 
         }
-      
+
         System.out.println(x[0] + " " + x[x.length - 1]);
         System.out.println(wavelenths.get(0));
 
-        AkimaSplineInterpolator  li = new AkimaSplineInterpolator (); // or other interpolator
+        AkimaSplineInterpolator li = new AkimaSplineInterpolator(); // or other interpolator
         PolynomialSplineFunction psf = li.interpolate(x, y);
-        
+
 //        UnivariateInterpolator
-         
-
-
         double[] yi = new double[wavelenths.size()];
         for (int i = 0; i < wavelenths.size(); i++) {
 //            yi[i] = psf.value(xi[i]);
@@ -202,9 +191,23 @@ public class Interpolator {
 
             interpolatedDataset.put(wavelenths.get(i), BigDecimal.valueOf(yi[i]));
         }
-//        System.out.println(interpolatedDataset.size());
+        System.out.println(interpolatedDataset.size());
         return interpolatedDataset;
     }
-    
-    
+
+    public void getDifferencewithLine() {
+
+        for (int i = 0; i < listSize; i++) {
+            double tr = originalList.get(i).getTransmittance().doubleValue();
+            BigDecimal wv = originalList.get(i).getWavenumber();
+            double y = interpolatedDataset.get(wv).doubleValue();
+
+            double a = Math.abs(tr - y);
+            BigDecimal difference = BigDecimal.valueOf(a);
+
+            substractedPointList.put(wv, difference);
+        }
+
+    }
+
 }

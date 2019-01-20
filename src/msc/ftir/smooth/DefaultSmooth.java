@@ -43,6 +43,7 @@ public class DefaultSmooth {
     private BigDecimal maxScale;
     private BigDecimal smoothingFactor;
     private int startx, endx;
+    public static int count = 0;
 
     public BigDecimal getMinScale() {
         return minScale;
@@ -85,6 +86,8 @@ public class DefaultSmooth {
 
     public void reset() {
         instance = null;
+        count = 0;
+        qdata();
     }
 
     public ArrayList<InputData> qdata() {

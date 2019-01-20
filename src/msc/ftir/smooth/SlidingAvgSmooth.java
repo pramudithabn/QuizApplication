@@ -50,6 +50,8 @@ public class SlidingAvgSmooth implements SlidingWindow{
 
     public void reset() {
         instance = null;
+        count = 0;
+        qdata();
     }
     
     

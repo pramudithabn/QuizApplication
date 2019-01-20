@@ -53,6 +53,8 @@ public class SavitzkyGolayFilter {
 
     public void reset() {
         instance = null;
+        count = 0;
+        qdata();
     }
 
     public static SavitzkyGolayFilter getInstance() {
