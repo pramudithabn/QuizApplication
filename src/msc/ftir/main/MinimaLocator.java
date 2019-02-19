@@ -69,12 +69,7 @@ public class MinimaLocator {
 
     }
 
-    public static void main(String args[]) {
-        MinimaLocator ml = new MinimaLocator();
-        ml.qdata();
-        ml.findMinima();
-        ml.cal_Minimas(1);
-    }
+  
 
     public ArrayList<InputData> qdata() {
 
@@ -140,6 +135,8 @@ public class MinimaLocator {
         
         double scFac = (scaleFactor).doubleValue();
         
+        minima.put(this.avgList.get(0).getWavenumber(), this.avgList.get(0).getTransmittance()); //add first point
+        
         for (int index = 1; index < this.avgList.size() - 2; index++) {
 
             double x1 = this.avgList.get(index - 1).getWavenumber().doubleValue();
@@ -162,9 +159,9 @@ public class MinimaLocator {
 
                 if (left < 0 && right > 0 /*&& */) {
                     
-                    if (absL>scFac && absR>scFac) {
-                        continue;
-                    }
+//                    if (absL>scFac && absR>scFac) {
+//                        continue;
+//                    }
                     
                     minima.put(this.avgList.get(index).getWavenumber(), this.avgList.get(index).getTransmittance());
                 }
@@ -212,7 +209,8 @@ public class MinimaLocator {
 //            System.out.println(key + " " + value);
 //
 //        }
-        System.out.println("Size " + minima.size());
+        minima.put(this.avgList.get(this.avgList.size() - 1).getWavenumber(), this.avgList.get(this.avgList.size() - 1).getTransmittance()); //add last point
+        System.out.println("Valley points # " + minima.size());
 
     }
 
