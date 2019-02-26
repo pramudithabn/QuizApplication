@@ -1,9 +1,10 @@
 package msc.ftir.main;
 
-import interpolate.Interpolator;
+import msc.ftir.util.Utils;
+import msc.ftir.baseline.InterpolatedBL;
 import msc.ftir.valleys.ValleysLocator;
 import msc.ftir.smooth.*;
-import msc.ftir.baseline.BaselineCorrection;
+import msc.ftir.baseline.RegressionBL;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -14,6 +15,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -79,8 +81,8 @@ public class MainWindow extends javax.swing.JFrame {
     private SlidingAvgSmooth_Selection sl = null;
     private TriangularSmooth_Selection ts = null;
     private SavitzkyGolayFilter sgf = null;
-    private ValleysLocator ml = null;
-    private BaselineCorrection bc = null;
+
+    private RegressionBL bc = null;
     public static Boolean newInstance = false;
     private ArrayList<Integer> sliderValuesList = new ArrayList<Integer>();
     private int prev = 0;
@@ -92,12 +94,11 @@ public class MainWindow extends javax.swing.JFrame {
     private static int lowerBoundX = 0, upperBoundX = 0;
     public static double lowerBoundT = 0, upperBoundT = 0;
 
-    private JFreeChart spec = null, chart = null, duelchart = null, smoothedSpec = null;
+    private JFreeChart spec = null, chart = null, duelchart = null, smoothedSpec = null, smoothed_chart = null;
     private XYDataset input_dataset = null;
     private int sliderPreviousValue, sliderCurrentValue, h_current, h_old;
 
-
-    private int threshCurrent,  threshPrevious = 0; //threshold values by sliders for valley detection
+    private int threshCurrent, threshPrevious = 0; //threshold values by sliders for valley detection
     private int noiseThreshCurrent, noiseThreshPrevious = 0; //threshold values by sliders for valley detection
 
     private ValleysLocator v1;
@@ -188,22 +189,6 @@ public class MainWindow extends javax.swing.JFrame {
         val_label2 = new javax.swing.JLabel();
         ninepoints = new javax.swing.JRadioButton();
         resetSmoothButton = new javax.swing.JButton();
-        jPanel2 = new javax.swing.JPanel();
-        threshText = new javax.swing.JTextField();
-        jLabel4 = new javax.swing.JLabel();
-        threshold = new javax.swing.JButton();
-        thresholdSlider = new javax.swing.JSlider();
-        Valleys = new javax.swing.JButton();
-        jLabel7 = new javax.swing.JLabel();
-        neighborSlider = new javax.swing.JSlider();
-        jPanel3 = new javax.swing.JPanel();
-        jLabel9 = new javax.swing.JLabel();
-        baselineMethodCombo = new javax.swing.JComboBox<>();
-        jLabel10 = new javax.swing.JLabel();
-        lineCheckBox = new javax.swing.JCheckBox();
-        splineCheckBox = new javax.swing.JCheckBox();
-        cubicSplineCheckBox = new javax.swing.JCheckBox();
-        baselineButton = new javax.swing.JButton();
         tablePanel = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         dataTable = new javax.swing.JTable();
@@ -214,6 +199,22 @@ public class MainWindow extends javax.swing.JFrame {
         jLabel11 = new javax.swing.JLabel();
         h_slider = new javax.swing.JSlider();
         jLabel12 = new javax.swing.JLabel();
+        jPanel3 = new javax.swing.JPanel();
+        jLabel9 = new javax.swing.JLabel();
+        baselineMethodCombo = new javax.swing.JComboBox<>();
+        jLabel10 = new javax.swing.JLabel();
+        lineCheckBox = new javax.swing.JCheckBox();
+        splineCheckBox = new javax.swing.JCheckBox();
+        cubicSplineCheckBox = new javax.swing.JCheckBox();
+        baselineButton = new javax.swing.JButton();
+        jPanel2 = new javax.swing.JPanel();
+        threshText = new javax.swing.JTextField();
+        jLabel4 = new javax.swing.JLabel();
+        threshold = new javax.swing.JButton();
+        thresholdSlider = new javax.swing.JSlider();
+        Valleys = new javax.swing.JButton();
+        jLabel7 = new javax.swing.JLabel();
+        neighborSlider = new javax.swing.JSlider();
         jLayeredPane1 = new javax.swing.JLayeredPane();
         jScrollPane2 = new javax.swing.JScrollPane();
         rsPanel = new javax.swing.JPanel();
@@ -404,6 +405,7 @@ public class MainWindow extends javax.swing.JFrame {
         jLabel3.setText("Filter width");
 
         pointsbuttonGroup.add(threepoints);
+        threepoints.setSelected(true);
         threepoints.setText("3 - points");
 
         pointsbuttonGroup.add(fivepoints);
@@ -508,179 +510,6 @@ public class MainWindow extends javax.swing.JFrame {
         );
 
         jTabbedPane1.addTab("Smoothing", resultsPanel);
-
-        jLabel4.setFont(new java.awt.Font("Tahoma", 3, 12)); // NOI18N
-        jLabel4.setText("Threshold");
-
-        threshold.setText("Add");
-        threshold.setFocusable(false);
-        threshold.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        threshold.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        threshold.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                thresholdActionPerformed(evt);
-            }
-        });
-
-        thresholdSlider.setMajorTickSpacing(10);
-        thresholdSlider.setMinorTickSpacing(1);
-        thresholdSlider.setPaintLabels(true);
-        thresholdSlider.setPaintTicks(true);
-        thresholdSlider.setToolTipText("");
-        thresholdSlider.setValue(1);
-        thresholdSlider.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                thresholdSliderStateChanged(evt);
-            }
-        });
-
-        Valleys.setText("Load");
-        Valleys.setFocusable(false);
-        Valleys.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        Valleys.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        Valleys.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                ValleysActionPerformed(evt);
-            }
-        });
-
-        jLabel7.setFont(new java.awt.Font("Tahoma", 3, 12)); // NOI18N
-        jLabel7.setText("Valleys");
-
-        neighborSlider.setMajorTickSpacing(1);
-        neighborSlider.setMaximum(5);
-        neighborSlider.setPaintTicks(true);
-        neighborSlider.setValue(1);
-        neighborSlider.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseReleased(java.awt.event.MouseEvent evt) {
-                neighborSliderMouseReleased(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(30, 30, 30)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(Valleys, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(thresholdSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 484, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(threshText, javax.swing.GroupLayout.PREFERRED_SIZE, 116, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(threshold)))
-                .addContainerGap(114, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(neighborSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 296, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(37, 37, 37))
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(21, 21, 21)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jLabel4)
-                        .addComponent(threshText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(threshold))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(thresholdSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 73, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel7)
-                    .addComponent(Valleys, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 13, Short.MAX_VALUE)
-                .addComponent(neighborSlider, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-        );
-
-        jTabbedPane1.addTab("Valleys    ", jPanel2);
-
-        jLabel9.setFont(new java.awt.Font("Tahoma", 3, 12)); // NOI18N
-        jLabel9.setText("Connect points by");
-
-        baselineMethodCombo.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        baselineMethodCombo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Select...", "Regression", "Interpolation" }));
-        baselineMethodCombo.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                baselineMethodComboActionPerformed(evt);
-            }
-        });
-
-        jLabel10.setFont(new java.awt.Font("Tahoma", 3, 12)); // NOI18N
-        jLabel10.setText("Method");
-
-        blmethodButtonGroup.add(lineCheckBox);
-        lineCheckBox.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        lineCheckBox.setText("Line");
-
-        blmethodButtonGroup.add(splineCheckBox);
-        splineCheckBox.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        splineCheckBox.setText("Spline");
-
-        blmethodButtonGroup.add(cubicSplineCheckBox);
-        cubicSplineCheckBox.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        cubicSplineCheckBox.setText("Cubic Spline");
-
-        baselineButton.setText("Finish");
-        baselineButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                baselineButtonActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGap(30, 30, 30)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(baselineMethodCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(splineCheckBox)
-                            .addComponent(lineCheckBox)
-                            .addComponent(cubicSplineCheckBox))))
-                .addContainerGap(341, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(baselineButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(126, 126, 126))
-        );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGap(19, 19, 19)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel9)
-                    .addComponent(baselineMethodCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel10)
-                    .addComponent(lineCheckBox))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(splineCheckBox)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(cubicSplineCheckBox)
-                .addGap(34, 34, 34)
-                .addComponent(baselineButton, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(33, 33, 33))
-        );
-
-        jTabbedPane1.addTab("Baseline   ", jPanel3);
 
         dataTable.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         dataTable.setModel(new javax.swing.table.DefaultTableModel(
@@ -793,6 +622,179 @@ public class MainWindow extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Peak Bottoms", jPanel4);
 
+        jLabel9.setFont(new java.awt.Font("Tahoma", 3, 12)); // NOI18N
+        jLabel9.setText("Connect points by");
+
+        baselineMethodCombo.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        baselineMethodCombo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Select...", "Regression", "Interpolation" }));
+        baselineMethodCombo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                baselineMethodComboActionPerformed(evt);
+            }
+        });
+
+        jLabel10.setFont(new java.awt.Font("Tahoma", 3, 12)); // NOI18N
+        jLabel10.setText("Method");
+
+        blmethodButtonGroup.add(lineCheckBox);
+        lineCheckBox.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        lineCheckBox.setText("Line");
+
+        blmethodButtonGroup.add(splineCheckBox);
+        splineCheckBox.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        splineCheckBox.setText("Spline");
+
+        blmethodButtonGroup.add(cubicSplineCheckBox);
+        cubicSplineCheckBox.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        cubicSplineCheckBox.setText("Cubic Spline");
+
+        baselineButton.setText("Finish");
+        baselineButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                baselineButtonActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addGap(30, 30, 30)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(baselineMethodCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(splineCheckBox)
+                            .addComponent(lineCheckBox)
+                            .addComponent(cubicSplineCheckBox))))
+                .addContainerGap(341, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(baselineButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(126, 126, 126))
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addGap(19, 19, 19)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel9)
+                    .addComponent(baselineMethodCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel10)
+                    .addComponent(lineCheckBox))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(splineCheckBox)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(cubicSplineCheckBox)
+                .addGap(34, 34, 34)
+                .addComponent(baselineButton, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(33, 33, 33))
+        );
+
+        jTabbedPane1.addTab("Baseline   ", jPanel3);
+
+        jLabel4.setFont(new java.awt.Font("Tahoma", 3, 12)); // NOI18N
+        jLabel4.setText("Threshold");
+
+        threshold.setText("Add");
+        threshold.setFocusable(false);
+        threshold.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        threshold.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        threshold.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                thresholdActionPerformed(evt);
+            }
+        });
+
+        thresholdSlider.setMajorTickSpacing(10);
+        thresholdSlider.setMinorTickSpacing(1);
+        thresholdSlider.setPaintLabels(true);
+        thresholdSlider.setPaintTicks(true);
+        thresholdSlider.setToolTipText("");
+        thresholdSlider.setValue(1);
+        thresholdSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                thresholdSliderStateChanged(evt);
+            }
+        });
+
+        Valleys.setText("Load");
+        Valleys.setFocusable(false);
+        Valleys.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        Valleys.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        Valleys.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ValleysActionPerformed(evt);
+            }
+        });
+
+        jLabel7.setFont(new java.awt.Font("Tahoma", 3, 12)); // NOI18N
+        jLabel7.setText("Valleys");
+
+        neighborSlider.setMajorTickSpacing(1);
+        neighborSlider.setMaximum(5);
+        neighborSlider.setPaintTicks(true);
+        neighborSlider.setValue(1);
+        neighborSlider.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseReleased(java.awt.event.MouseEvent evt) {
+                neighborSliderMouseReleased(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(30, 30, 30)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(Valleys, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(thresholdSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 484, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(threshText, javax.swing.GroupLayout.PREFERRED_SIZE, 116, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(threshold)))
+                .addContainerGap(114, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(neighborSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 296, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(37, 37, 37))
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(21, 21, 21)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel4)
+                        .addComponent(threshText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(threshold))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(thresholdSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 73, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel7)
+                    .addComponent(Valleys, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 13, Short.MAX_VALUE)
+                .addComponent(neighborSlider, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+
+        jTabbedPane1.addTab("Valleys    ", jPanel2);
+
         javax.swing.GroupLayout jLayeredPane1Layout = new javax.swing.GroupLayout(jLayeredPane1);
         jLayeredPane1.setLayout(jLayeredPane1Layout);
         jLayeredPane1Layout.setHorizontalGroup(
@@ -804,7 +806,7 @@ public class MainWindow extends javax.swing.JFrame {
             .addGap(0, 276, Short.MAX_VALUE)
         );
 
-        rsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "PREPROCESSED SPECTRUM", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
+        rsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "PROCESSING", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
 
         javax.swing.GroupLayout rsPanelLayout = new javax.swing.GroupLayout(rsPanel);
         rsPanel.setLayout(rsPanelLayout);
@@ -819,7 +821,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         jScrollPane2.setViewportView(rsPanel);
 
-        comPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "BANDS", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
+        comPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "OUTPUT", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
 
         javax.swing.GroupLayout comPanelLayout = new javax.swing.GroupLayout(comPanel);
         comPanel.setLayout(comPanelLayout);
@@ -953,15 +955,13 @@ public class MainWindow extends javax.swing.JFrame {
 //                    Scale s = new Scale();
 //                    s.fixScale(0, 100, "input_data");
 //                    create_spectrum(s.getFixedScaleList(), specPanel);
-                    
                     //smoothed spec by auto function
 //                    DefaultSmooth ls = new DefaultSmooth();
 //                    ls.general_avg_algorithm_3point(sliderValue);
 //                    createSmoothed_spectrum(ls.rowDataList, ls.avgPointList);
-                    
                     SavitzkyGolayFilter sg = new SavitzkyGolayFilter();
                     sg.applyFilter_3points();
-                    
+
                     combined2Charts(input_dataset, createSmoothedDataset(), rsPanel);
                     //end of function
 
@@ -1039,14 +1039,14 @@ public class MainWindow extends javax.swing.JFrame {
         comPanel.repaint();
 
         try {
-            MinimaLocator ml = new MinimaLocator();
-            ml.findMinima();
+
+            v1.peakTopSet();
 //        ml.cal_Minimas(0);
 
 //            switch (algorithm) {
 //                case 1:
 //                    ds = DefaultSmooth.getInstance();
-            createDuel(ml.createDataset(), createSmoothedDataset(), comPanel);
+            createDuel(createDataset(v1.peakTopSet(), fileName), createSmoothedDataset(), comPanel);
 //                    break;
 //                case 2:
 ////                    ls = SlidingAvgSmooth.getInstance();
@@ -1435,17 +1435,17 @@ public class MainWindow extends javax.swing.JFrame {
             comPanel.removeAll();
             comPanel.revalidate();
             comPanel.repaint();
-            ml.discard_below_threshold(BigDecimal.valueOf(thresh));
+            v1.discard_below_threshold(BigDecimal.valueOf(thresh));
 
             switch (algorithm) {
                 case 1:
-                    createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset(), comPanel);
+                    createDuel(createValleyDataset(v1.getValleyCandidates()), createSmoothedDataset(), comPanel);
                     break;
                 case 2:
-                    createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset(), comPanel);
+                    createDuel(createValleyDataset(v1.getValleyCandidates()), createSmoothedDataset(), comPanel);
                     break;
                 case 3:
-                    createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset(), comPanel);
+                    createDuel(createValleyDataset(v1.getValleyCandidates()), createSmoothedDataset(), comPanel);
                     break;
 
             }
@@ -1476,23 +1476,23 @@ public class MainWindow extends javax.swing.JFrame {
                         plot.addRangeMarker(marker);
                         //end
 
-                        ml = new ValleysLocator();
-                        ml.point3Valleys();
+                        v1 = new ValleysLocator();
+                        v1.point3Valleys();
                         //discard points those who cannot attain threshold
                         comPanel.removeAll();
                         comPanel.revalidate();
                         comPanel.repaint();
-                        ml.discard_below_threshold(BigDecimal.valueOf(thresholdValue));
+                        v1.discard_below_threshold(BigDecimal.valueOf(thresholdValue));
 
                         switch (algorithm) {
                             case 1:
-                                createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset(), comPanel);
+                                createDuel(createValleyDataset(v1.getValleyCandidates()), createSmoothedDataset(), comPanel);
                                 break;
                             case 2:
-                                createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset(), comPanel);
+                                createDuel(createValleyDataset(v1.getValleyCandidates()), createSmoothedDataset(), comPanel);
                                 break;
                             case 3:
-                                createDuel(createValleyDataset(ml.getValleyCandidates()), createSmoothedDataset(), comPanel);
+                                createDuel(createValleyDataset(v1.getValleyCandidates()), createSmoothedDataset(), comPanel);
                                 break;
                         }
                     } catch (SQLException ex) {
@@ -1507,11 +1507,25 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         try {
-            SavitzkyGolayFilter sg = new SavitzkyGolayFilter();
-            sg.applyFilter_3points();
-            combined2Charts(createInputDataset(), createSmoothedDataset(), rsPanel);
-        } catch (SQLException ex) {
-            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+            FileInputStream in = new FileInputStream("src/msc/ftir/util/file.properties");
+            Properties props = new Properties();
+            props.load(in);
+            String p = props.getProperty("jfilechooser.browser.filepath");
+            System.out.println(p);
+            in.close();
+            JFileChooser chooser = new JFileChooser(p, null);
+            chooser.showOpenDialog(this);
+
+            File dataFile = chooser.getCurrentDirectory();
+            String newDirectoryLoc = dataFile.getAbsolutePath().replace("\\", "/");
+
+            FileOutputStream out = new FileOutputStream("src/msc/ftir/util/file.properties");
+            props.setProperty("jfilechooser.browser.filepath", newDirectoryLoc);
+            System.out.println(newDirectoryLoc);
+            props.store(out, null);
+            out.close();
+        } catch (Exception e) {
+            System.out.println(e);
         }
 
     }//GEN-LAST:event_jButton1ActionPerformed
@@ -1527,12 +1541,13 @@ public class MainWindow extends javax.swing.JFrame {
                         enumeration.nextElement().setEnabled(false);
                     }
                 } else if (baselineMethodCombo.getSelectedItem().equals("Regression")) {
+                    lineCheckBox.setEnabled(true);
+                    splineCheckBox.setEnabled(true);
                     cubicSplineCheckBox.setEnabled(false);
-
                 } else if (baselineMethodCombo.getSelectedItem().equals("Interpolation")) {
-                    while (enumeration.hasMoreElements()) {
-                        enumeration.nextElement().setEnabled(true);
-                    }
+                    lineCheckBox.setEnabled(true);
+                    splineCheckBox.setEnabled(false);
+                    cubicSplineCheckBox.setEnabled(true);
                 }
             }
         }
@@ -1541,29 +1556,34 @@ public class MainWindow extends javax.swing.JFrame {
     private void baselineButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_baselineButtonActionPerformed
         try {
             if (baselineMethodCombo.getSelectedItem().toString().equalsIgnoreCase("Regression")) {
-                bc = new BaselineCorrection();
+                bc = new RegressionBL();
+
                 if (lineCheckBox.isSelected()) {
-                    bc.drawRegressionLine(duelchart, createValleyDataset(ml.getValleyCandidates()), lowerBoundX, upperBoundX);
+
+                    bc.drawRegressionLine(smoothed_chart, createValleyDataset(v1.getPeaktops()), lowerBoundX, upperBoundX);
+                    System.out.println("sssss" + v1.getCandidates().size());
                 }
                 if (splineCheckBox.isSelected()) {
-                    bc.drawPolynomialFit(duelchart, createValleyDataset(ml.getValleyCandidates()), lowerBoundX, upperBoundX);
+
+                    bc.drawPolynomialFit(smoothed_chart, createValleyDataset(v1.getPeaktops()), lowerBoundX, upperBoundX);
                 }
-                create_spectrum(bc.getHdifferenceBetweenPoints(), rsPanel, "Baseline Corrected");
+
+//                create_spectrum(bc.getDifferencewithLine(), rsPanel, "Baseline Corrected");
+                combined2Charts(createDataset(bc.getDifferencewithLine(), "Baseline Corrected"), createSmoothedDataset(), comPanel);
             }
             if (baselineMethodCombo.getSelectedItem().toString().equalsIgnoreCase("Interpolation")) {
                 SortedMap<BigDecimal, BigDecimal> mapi = null;
-                Interpolator intpol = new Interpolator();
+                InterpolatedBL intpol = new InterpolatedBL();
 
                 if (lineCheckBox.isSelected()) {
-                    mapi = intpol.linearInterp(createValleyDataset(ml.getValleyCandidates()), ml.getValleyCandidates().size());
+                    mapi = intpol.linearInterp(createValleyDataset(v1.getPeaktops()), v1.getCandidates().size());
                 }
-                if (splineCheckBox.isSelected()) {
-                    mapi = intpol.linearInterp(createValleyDataset(ml.getValleyCandidates()), ml.getValleyCandidates().size());
-                }
+
                 if (cubicSplineCheckBox.isSelected()) {
-                    mapi = intpol.cubicInterp(createValleyDataset(ml.getValleyCandidates()), ml.getValleyCandidates().size());
+                    mapi = intpol.cubicInterp(createValleyDataset(v1.getPeaktops()), v1.getCandidates().size());
                 }
                 combined2Charts(createDataset(mapi, "Interpolated data"), createSmoothedDataset(), rsPanel);
+                combined2Charts(createDataset(intpol.getDifferencewithLine(), "Baseline Corrected"), createSmoothedDataset(), comPanel);
             }
         } catch (SQLException ex) {
             Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
@@ -1659,13 +1679,12 @@ public class MainWindow extends javax.swing.JFrame {
         }
 
         noiseThreshPrevious = noiseThreshCurrent;
-    
+
     }//GEN-LAST:event_noiseSliderMouseReleased
 
     private void h_sliderMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_h_sliderMouseReleased
         h_current = h_slider.getValue();
-        
-       
+
         if (h_current < h_old) {
 
             h_filter_reverse();
@@ -1806,7 +1825,7 @@ public class MainWindow extends javax.swing.JFrame {
 //            JFreeChart spec = ChartFactory.createXYLineChart("", "Wavenumber (cm-1)", "Transmittance %", dataset, PlotOrientation.VERTICAL, false, true, true);
             spec = ChartFactory.createXYLineChart("", "Wavenumber (cm-1)", "Transmittance %", dataset, PlotOrientation.VERTICAL, false, true, true);
             spec.setBorderVisible(false);
-
+            spec.setBackgroundPaint(Color.white);
             spec.getXYPlot().setDomainGridlinesVisible(true);
 
             ChartPanel chartPanel = new ChartPanel(spec);
@@ -1837,7 +1856,7 @@ public class MainWindow extends javax.swing.JFrame {
             lowerBoundT = plot.getRangeAxis().getRange().getLowerBound();
             upperBoundT = plot.getRangeAxis().getRange().getUpperBound();
 
-            System.out.println(lowerBoundX + " " + upperBoundX + "     " + lowerBoundT + " " + upperBoundT);
+//            System.out.println(lowerBoundX + " " + upperBoundX + "     " + lowerBoundT + " " + upperBoundT);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, e);
         }
@@ -1880,23 +1899,51 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void fileChooser() {
 
-//        JFileChooser chooser = new MyFileChooser();
-        JFileChooser chooser = Utils.getFileChooser();
-        int returnVal = chooser.showOpenDialog(this);
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            Utils.setLastDir(chooser.getSelectedFile());
+////        JFileChooser chooser = new MyFileChooser();
+//        JFileChooser chooser = Utils.getFileChooser();
+//        int returnVal = chooser.showOpenDialog(this);
+//        if (returnVal == JFileChooser.APPROVE_OPTION) {
+//            Utils.setLastDir(chooser.getSelectedFile());
+//
+//        }
+////        File workingDirectory = new File(System.getProperty("user.home"));
+////        chooser.setCurrentDirectory(workingDirectory);
+//
+////        chooser.setSelectedFile(workingDirectory);
+////        chooser.showOpenDialog(null);
+//        File dataFile = chooser.getSelectedFile();
+////        fileName = dataFile.getAbsolutePath();
+//        fileName = dataFile.getAbsolutePath().replace("\\", "/");
+//        filePathText.setText(fileName);
+//        p.setProperty(fileName, "Last.dir");
+        try {
+            //get previous location
+            FileInputStream in = new FileInputStream("src/msc/ftir/util/file.properties");
+            Properties props = new Properties();
+            props.load(in);
+            String p = props.getProperty("jfilechooser.browser.filepath");
+            in.close();
+            JFileChooser chooser = new JFileChooser(p, null);
+            chooser.showOpenDialog(this);
 
+            //for file type validation
+            File dataFile = chooser.getSelectedFile();
+            fileName = dataFile.getAbsolutePath();
+            fileName = dataFile.getAbsolutePath().replace("\\", "/");
+            //end
+
+            //store current directory
+            File dataFile2 = chooser.getCurrentDirectory();
+            String newDirectoryLoc = dataFile2.getAbsolutePath().replace("\\", "/");
+
+            FileOutputStream out = new FileOutputStream("src/msc/ftir/util/file.properties");
+            props.setProperty("jfilechooser.browser.filepath", newDirectoryLoc);
+            filePathText.setText(fileName);
+            props.store(out, null);
+            out.close();
+        } catch (Exception e) {
+            System.out.println(e);
         }
-//        File workingDirectory = new File(System.getProperty("user.home"));
-//        chooser.setCurrentDirectory(workingDirectory);
-
-//        chooser.setSelectedFile(workingDirectory);
-//        chooser.showOpenDialog(null);
-        File dataFile = chooser.getSelectedFile();
-//        fileName = dataFile.getAbsolutePath();
-        fileName = dataFile.getAbsolutePath().replace("\\", "/");
-        filePathText.setText(fileName);
-        p.setProperty(fileName, "Last.dir");
 
     }
 
@@ -2417,7 +2464,7 @@ public class MainWindow extends javax.swing.JFrame {
         XYDataset collection1 = set1;
         XYItemRenderer renderer1 = new XYLineAndShapeRenderer(true, false);	// Shapes only
         XYLineAndShapeRenderer xylineandshaperenderer1 = new XYLineAndShapeRenderer(true, false);
-        xylineandshaperenderer1.setSeriesPaint(0, Color.gray);
+        xylineandshaperenderer1.setSeriesPaint(0, Color.magenta);
         ValueAxis domain1 = new NumberAxis("Wavenumber (cm-1)");
         ValueAxis range1 = new NumberAxis("Transmittance %");
         domain1.setAutoRange(true);
@@ -2435,7 +2482,7 @@ public class MainWindow extends javax.swing.JFrame {
         ValueAxis domain2 = new NumberAxis("");
         ValueAxis range2 = new NumberAxis("");
         XYLineAndShapeRenderer xylineandshaperenderer2 = new XYLineAndShapeRenderer(true, false);
-        xylineandshaperenderer2.setSeriesPaint(0, Color.magenta);
+        xylineandshaperenderer2.setSeriesPaint(0, Color.gray);
 
         plot.setDataset(1, collection2);
         plot.setRenderer(1, renderer2);
@@ -2452,8 +2499,8 @@ public class MainWindow extends javax.swing.JFrame {
 
 //        plot.mapDatasetToDomainAxis(1, 1);
 //        plot.mapDatasetToRangeAxis(1, 1);
-        JFreeChart chart = new JFreeChart("", JFreeChart.DEFAULT_TITLE_FONT, plot, true);
-        ChartPanel chartPanel = new ChartPanel(chart);
+        smoothed_chart = new JFreeChart("", JFreeChart.DEFAULT_TITLE_FONT, plot, true);
+        ChartPanel chartPanel = new ChartPanel(smoothed_chart);
         panel.setLayout(new java.awt.BorderLayout());
         panel.add(chartPanel, BorderLayout.CENTER);
         panel.validate();
@@ -2609,7 +2656,7 @@ public class MainWindow extends javax.swing.JFrame {
     }
 
     public void showDefaultTrendLine() {
-        bc = new BaselineCorrection();
+        bc = new RegressionBL();
         bc.drawRegressionLine(spec, input_dataset, lowerBoundX, upperBoundX);//good to get default trend line
 
     }
@@ -2890,7 +2937,7 @@ public class MainWindow extends javax.swing.JFrame {
     }
 
     private void reverseThresh() {
-        
+
         comPanel.removeAll();
         comPanel.revalidate();
         comPanel.repaint();
@@ -2906,7 +2953,7 @@ public class MainWindow extends javax.swing.JFrame {
         } catch (SQLException ex) {
             Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
         }//end
-        
+
     }
 
     private void performThresh() {
@@ -2924,7 +2971,7 @@ public class MainWindow extends javax.swing.JFrame {
     }
 
     private void reverseNoiseFilter() {
-        
+
         comPanel.removeAll();
         comPanel.revalidate();
         comPanel.repaint();
@@ -2941,7 +2988,7 @@ public class MainWindow extends javax.swing.JFrame {
         } catch (SQLException ex) {
             Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
         }//end
-        
+
     }
 
     private void performNoiseFilter() {
@@ -2970,6 +3017,7 @@ public class MainWindow extends javax.swing.JFrame {
             v1.candidateSet();
             v1.discardBelowThresh(threshCurrent, lowerBoundT, upperBoundT);
             v1.cal_h(h_current);
+            v1.evaluateNeighbourhood();
             createDuel(createValleyDataset(v1.getCandidates()), createSmoothedDataset(), comPanel);
 
         } catch (SQLException ex) {
@@ -2984,6 +3032,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         try {
             v1.cal_h(h_current);
+            v1.evaluateNeighbourhood();
             createDuel(createValleyDataset(v1.getCandidates()), createSmoothedDataset(), comPanel);
 
         } catch (SQLException ex) {

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package msc.ftir.main;
+package msc.ftir.util;
 
 import java.io.File;
 import javax.swing.JFileChooser;

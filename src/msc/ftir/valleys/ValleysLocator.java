@@ -58,8 +58,15 @@ public class ValleysLocator {
     //original data map
     private NavigableMap<BigDecimal, BigDecimal> allPoints = new TreeMap<BigDecimal, BigDecimal>();
 
-    //candidate set
+    //candidate valley set 
     private NavigableMap<BigDecimal, BigDecimal> candidates = new TreeMap<BigDecimal, BigDecimal>();
+
+    //peak tops set 
+    private NavigableMap<BigDecimal, BigDecimal> peaktops = new TreeMap<BigDecimal, BigDecimal>();
+
+    public NavigableMap<BigDecimal, BigDecimal> getPeaktops() {
+        return peaktops;
+    }
 
     public NavigableMap<BigDecimal, BigDecimal> getCandidates() {
         return candidates;
@@ -130,10 +137,11 @@ public class ValleysLocator {
         v1.cal_1storder_derivative();
         v1.cal_2ndorder_derivative();
         v1.candidateSet();
+        v1.peakTopSet();
 //        v1.discardBelowThresh(50, -0.0230135, 0.2179635);
 //        v1.adjustNoiseLevel(10);
         v1.evaluateNeighbourhood();
-        v1.cal_h(10);
+//        v1.cal_h(10);
 
     }
 
@@ -238,13 +246,12 @@ public class ValleysLocator {
 
             System.out.println(key + " , " + fod + " , " + sod);
         }
-
         System.out.println("SOD " + secondOrderDerivatives.size());
 
     }
 
     //3. create a candidate set
-    public void candidateSet() {
+    public NavigableMap<BigDecimal, BigDecimal> candidateSet() {
 
         for (Entry<BigDecimal, BigDecimal> entry : firstOrderDerivatives.entrySet()) {
 
@@ -265,14 +272,16 @@ public class ValleysLocator {
             }
 
         }
-        System.out.println("Candidate size " + candidates.size());
-        //print all
-        for (BigDecimal name : candidates.keySet()) {
 
-            String key = name.toString();
-            String value = candidates.get(name).toString();
-            System.out.println("new list " + key + " " + value);
-        }
+        System.out.println("Candidate size " + candidates.size());
+        return candidates;
+        //print all
+//        for (BigDecimal name : candidates.keySet()) {
+//
+//            String key = name.toString();
+//            String value = candidates.get(name).toString();
+//            System.out.println("new list " + key + " " + value);
+//        }
 
     }
 
@@ -375,7 +384,7 @@ public class ValleysLocator {
         double min = Math.min(minn, minb);
         double max = Math.max(maxn, maxb);
 
-        double noise_thresh = ((max - min) / 100) * n;
+        double noise_thresh = ((max - min) / 10) * n;
         System.out.println(noise_thresh);
 
         for (Entry<BigDecimal, BigDecimal> entry : candidates.entrySet()) {
@@ -400,10 +409,112 @@ public class ValleysLocator {
     //7. look for peaks in the neighbourhood
     public void evaluateNeighbourhood() {
 
-        int id = 0;
-        boolean right_exist_ptops = false, left_exist_ptops = false;
+        //1. find V & P
+        NavigableMap<BigDecimal, BigDecimal> valleys = new TreeMap<BigDecimal, BigDecimal>();
+        NavigableMap<BigDecimal, BigDecimal> peaks = new TreeMap<BigDecimal, BigDecimal>();
         NavigableMap<BigDecimal, BigDecimal> temp = new TreeMap<BigDecimal, BigDecimal>();
+     
+
+        valleys = getCandidates();
+        peaks = peakTopSet();
+        System.out.println("sizes " + peaks.size() + "  " + valleys.size());
+
+        for (Entry<BigDecimal, BigDecimal> entry : valleys.entrySet()) {
+            //find lower Peak > wavelength of last Vi
+            BigDecimal v = entry.getKey();
+            Entry<BigDecimal, BigDecimal> p1 = peaks.lowerEntry(v); //p1, v, p3 order
+            Entry<BigDecimal, BigDecimal> p3 = peaks.higherEntry(v);
+            if (p1 != null && p3 != null) {
+                double p1_y = p1.getValue().doubleValue();
+                double p1_x = p1.getKey().doubleValue();
+
+                double p3_y = p3.getValue().doubleValue();
+                double p3_x = p3.getKey().doubleValue();
+
+                double v_y = entry.getValue().doubleValue();
+                double v_x = entry.getKey().doubleValue();
+
+
+                double grad1_2 = (v_y - p1_y) / (v_x - p1_x);
+                double grad2_3 = (p3_y - v_y) / (p3_x - v_x);
+
+                if (grad1_2 < 0 && grad2_3 > 0) {
+                    temp.put(v, entry.getValue());
+                }
+
+            }
+
+            //find higher Peak < wavelength of next Vi
+        }
+        candidates.clear();
+        candidates = temp;
+        System.out.println("NEWWWW "+candidates.size());
+
+        /* 
+        boolean right_exist_ptops = false, left_exist_ptops = false;
+
         for (Entry<BigDecimal, BigDecimal> entry : candidates.entrySet()) {
+
+            BigDecimal key = entry.getKey(); //current key
+            System.out.print(key + "\t");
+            int r = 0, l = 0;
+
+            //search for peaks on right side
+            double pointR = firstOrderDerivatives.higherEntry(key).getValue().doubleValue(); //n+1
+
+            if (pointR > 0) { //fod is positive and sod is concave up
+                NavigableMap<BigDecimal, BigDecimal> tailmap = firstOrderDerivatives.tailMap(entry.getValue(), false);
+
+                for (Entry<BigDecimal, BigDecimal> tailEntry : tailmap.entrySet()) {
+                    double x = tailEntry.getValue().doubleValue();
+                    BigDecimal k = tailEntry.getKey();
+
+                    r++;
+
+                    if (tailmap.lowerEntry(k).getValue() != null && tailmap.higherEntry(k).getValue() != null) {
+                        BigDecimal x1 = tailmap.lowerEntry(k).getValue();
+                        BigDecimal x3 = tailmap.higherEntry(k).getValue();
+                        if (x1.doubleValue() > 0 && x3.doubleValue() < 0 && r <= range) {
+                            right_exist_ptops = true;
+                            break;
+
+                        }
+                    }
+
+                }
+                System.out.print(right_exist_ptops + "\t");
+            }
+
+            //search for peaks on left side
+            double pointL = firstOrderDerivatives.lowerEntry(key).getValue().doubleValue(); //n-1
+            double pointL2OD = secondOrderDerivatives.lowerEntry(key).getValue().doubleValue(); //n+1
+
+            if (pointL < 0) {
+
+                NavigableMap<BigDecimal, BigDecimal> headmap = firstOrderDerivatives.headMap(entry.getValue(), false);
+                NavigableMap<BigDecimal, BigDecimal> reverse = headmap.descendingMap();
+
+                for (Entry<BigDecimal, BigDecimal> headEntry : reverse.entrySet()) {
+                    double d = headEntry.getValue().doubleValue();
+                    BigDecimal k = headEntry.getKey();
+                    BigDecimal x1 = headmap.lowerEntry(k).getValue();
+                    BigDecimal x3 = headmap.higherEntry(k).getValue();
+                    l++;
+                    if (x1 != null && x3 != null) {
+                        if (x1.doubleValue() > 0 && x3.doubleValue() < 0 && l <= range) {
+                            left_exist_ptops = true;
+                            break;
+                        }
+                    }
+
+                }
+                System.out.print(left_exist_ptops + "\t");
+            }
+//            System.out.println(left_exist_ptops + "   " + right_exist_ptops);
+        }
+
+
+             for (Entry<BigDecimal, BigDecimal> entry : candidates.entrySet()) {
 
             BigDecimal key = entry.getKey(); //current key
             Entry<BigDecimal, BigDecimal> pointL = candidates.lowerEntry(key); //n-1
@@ -416,7 +527,7 @@ public class ValleysLocator {
                     temp.put(key, entry.getValue());
                 }
 
-                /*
+               
 //            //find the id of this key
 //            for (int i = 0; i < listSize; i++) {
 //                if (smoothedPointList.get(i).getWavenumber().doubleValue() == key.doubleValue()) {
@@ -510,16 +621,16 @@ public class ValleysLocator {
             if ((left_exist_ptops && right_exist_ptops)) {
                 //discard point
                 System.out.println(candidates.size());
-            }*/
+           
             }
         }
 
         candidates.clear();
         candidates = temp;
-        System.out.println(candidates.size());
+        System.out.println(candidates.size()); }*/
     }
-
     //8. discard depending on the h with neighbours
+
     public void cal_h(int n) {
         NavigableMap<BigDecimal, BigDecimal> h_listL = new TreeMap<BigDecimal, BigDecimal>();
         NavigableMap<BigDecimal, BigDecimal> h_listR = new TreeMap<BigDecimal, BigDecimal>();
@@ -555,7 +666,7 @@ public class ValleysLocator {
 
         double max = (max1 + max2) / 2;
         double min = (min1 + min2) / 2;
-        double h = ((max - min) / 100) * n;
+        double h = ((max - min) / 100) * (n / 10);
 
         for (Entry<BigDecimal, BigDecimal> entry : candidates.entrySet()) {
 
@@ -567,10 +678,10 @@ public class ValleysLocator {
                 temp.put(key, candidates.get(key));
             }
         }
-        
+
         candidates.clear();
         candidates = temp;
-        System.out.println("new reduced size = "+candidates.size());
+        System.out.println("new reduced size = " + candidates.size());
 
     }
 
@@ -582,6 +693,8 @@ public class ValleysLocator {
         v1.cal_2ndorder_derivative();
         v1.candidateSet();
         v1.discardBelowThresh(50, down, up);
+        v1.cal_h(150);
+        v1.evaluateNeighbourhood();
 
     }
 
@@ -1096,6 +1209,38 @@ public class ValleysLocator {
 
         //print equation
 //        System.out.println("y = " + a2 + "*x^2+ " + a1 + "*x + " + a0);
+    }
+
+    public NavigableMap<BigDecimal, BigDecimal> peakTopSet() {
+
+        for (Entry<BigDecimal, BigDecimal> entry : firstOrderDerivatives.entrySet()) {
+
+            BigDecimal key = entry.getKey(); //current key
+            Entry<BigDecimal, BigDecimal> next = firstOrderDerivatives.higherEntry(key); //next
+            Entry<BigDecimal, BigDecimal> prev = firstOrderDerivatives.lowerEntry(key);  // previous
+
+            if ((next != null && prev != null)) {
+
+                BigDecimal currentV = entry.getValue();
+                BigDecimal nextV = next.getValue();
+                BigDecimal prevV = prev.getValue();
+
+                if (nextV.doubleValue() < 0 && prevV.doubleValue() > 0 && currentV.doubleValue() < 0) {
+                    peaktops.put(key, allPoints.get(key));
+                }
+
+            }
+
+        }
+        System.out.println("Candidate size " + peaktops.size());
+        //print all
+//        for (BigDecimal name : candidates.keySet()) {
+//
+//            String key = name.toString();
+//            String value = candidates.get(name).toString();
+//            System.out.println("new list " + key + " " + value);
+//        }
+        return peaktops;
     }
 
 }

@@ -17,7 +17,7 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
-import msc.ftir.baseline.BaselineCorrection;
+import msc.ftir.baseline.RegressionBL;
 import msc.ftir.main.InputData;
 import msc.ftir.main.Javaconnect;
 import org.jfree.data.statistics.Regression;
@@ -36,7 +36,7 @@ public class SavitzkyGolayFilter {
     private ResultSet rs = null;
     public ArrayList<InputData> originalPoints = new ArrayList<InputData>();
     public ArrayList<BigDecimal> transmittanceValues = new ArrayList<BigDecimal>();
-    public BaselineCorrection bc;
+    public RegressionBL bc;
     private static volatile SavitzkyGolayFilter instance;
     private int listSize = 0;
     private SortedMap<BigDecimal, BigDecimal> pointset = new TreeMap<BigDecimal, BigDecimal>();

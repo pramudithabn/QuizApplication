@@ -32,7 +32,7 @@ import org.jfree.data.xy.XYDataset;
  *
  * @author Pramuditha Buddhini
  */
-public class BaselineCorrection {
+public class RegressionBL {
 
     private Connection conn = null;
     private PreparedStatement pst = null;
@@ -82,14 +82,14 @@ public class BaselineCorrection {
         this.linePoints = linePoints;
     }
 
-    public BaselineCorrection() {
+    public RegressionBL() {
         conn = Javaconnect.ConnecrDb();
 
 //        qdata();
     }
 
     public static void main(String[] args) {
-        BaselineCorrection b = new BaselineCorrection();
+        RegressionBL b = new RegressionBL();
 
     }
 
@@ -219,7 +219,7 @@ public class BaselineCorrection {
         getDifferencewithLine();
     }
 
-    public void getDifferencewithLine() {
+    public SortedMap<BigDecimal, BigDecimal> getDifferencewithLine() {
 
         for (int i = 0; i < slistSize; i++) {
             double tr = smoothedList.get(i).getTransmittance().doubleValue();
@@ -227,11 +227,14 @@ public class BaselineCorrection {
             double x = smoothedList.get(i).getWavenumber().doubleValue();
 //            double y = linePoints.get(wv).doubleValue(); //transmittance according to regression line w.r.t. to wavelength
             double y = m1 * x + c1;
-            double a = Math.abs(tr - y);
+//            double a = Math.abs(tr - y);
+            double a = tr - y;
             BigDecimal difference = BigDecimal.valueOf(a);
 
             hdifferenceBetweenPoints.put(wv, difference);
         }
+        
+        return hdifferenceBetweenPoints;
 //        System.out.println(" ");
 //        for (BigDecimal wvl : linePoints.keySet()) {
 //            double x = wvl.doubleValue();
@@ -256,10 +259,10 @@ public class BaselineCorrection {
 
         // Draw the line dataset
         XYPlot xyplot = chart.getXYPlot();
-        xyplot.setDataset(1, dataset);
+        xyplot.setDataset(2, dataset);
         XYLineAndShapeRenderer xylineandshaperenderer = new XYLineAndShapeRenderer(true, false);
-        xylineandshaperenderer.setSeriesPaint(0, Color.YELLOW);
-        xyplot.setRenderer(1, xylineandshaperenderer);
+        xylineandshaperenderer.setSeriesPaint(0, Color.magenta);
+        xyplot.setRenderer(2, xylineandshaperenderer);
 
         //get query of avg_data table
         qdata_avg();
@@ -318,14 +321,14 @@ public class BaselineCorrection {
      * Reference: J. D. Faires, R. L. Burden, Numerische Methoden (german
      * edition), pp. 243ff and 327ff.*/
 
-        double regressionParameters[] = Regression.getPolynomialRegression(inputData, 0, 4);
+        double regressionParameters[] = Regression.getPolynomialRegression(inputData, 0, 2);
 
         double a0 = regressionParameters[0];
         double a1 = regressionParameters[1];
         double a2 = regressionParameters[2];
-        double a3 = regressionParameters[3];
-        double a4 = regressionParameters[4];
-        System.out.println("y = " + a3 + "*x^3+ " + a2 + "*x^2+ " + a1 + "*x + " + a0);
+//        double a3 = regressionParameters[3];
+//        double a4 = regressionParameters[4];
+//        System.out.println("y = " + a3 + "*x^3+ " + a2 + "*x^2+ " + a1 + "*x + " + a0);
         // Prepare a curve function using the found parameters
         PolynomialFunction2D polyfunction2d = new PolynomialFunction2D(regressionParameters);
 
@@ -334,10 +337,10 @@ public class BaselineCorrection {
 
         // Draw the line dataset
         XYPlot xyplot = chart.getXYPlot();
-        xyplot.setDataset(1, dataset);
+        xyplot.setDataset(2, dataset);
         XYLineAndShapeRenderer xylineandshaperenderer = new XYLineAndShapeRenderer(true, false);
         xylineandshaperenderer.setSeriesPaint(0, Color.YELLOW);
-        xyplot.setRenderer(1, xylineandshaperenderer);
+        xyplot.setRenderer(2, xylineandshaperenderer);
 
         //get query of avg_data table
         qdata_avg();
@@ -346,7 +349,8 @@ public class BaselineCorrection {
         linePoints.clear();
         for (int i = 0; i < slistSize; i++) {
             double x = smoothedList.get(i).getWavenumber().doubleValue();
-            double a = (a4 * x * x * x * x) + (a3 * x * x * x) + (a2 * x * x) + (a1 * x) + a0;
+//            double a = (a4 * x * x * x * x) + (a3 * x * x * x) + (a2 * x * x) + (a1 * x) + a0;
+            double a = (a2 * x * x) + (a1 * x) + a0;
             BigDecimal y = BigDecimal.valueOf(a);
             linePoints.put(BigDecimal.valueOf(x), y);
 

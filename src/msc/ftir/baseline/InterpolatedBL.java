@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package interpolate;
+package msc.ftir.baseline;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -28,7 +28,7 @@ import org.jfree.data.xy.XYDataset;
  *
  * @author Pramuditha Buddhini
  */
-public class Interpolator {
+public class InterpolatedBL {
 
     private Connection conn = null;
     private PreparedStatement pst = null;
@@ -38,7 +38,7 @@ public class Interpolator {
     private int listSize;
     private SortedMap<BigDecimal, BigDecimal> substractedPointList = new TreeMap<BigDecimal, BigDecimal>();
 
-    public Interpolator() {
+    public InterpolatedBL() {
         conn = Javaconnect.ConnecrDb();
         qdata();
     }
@@ -70,7 +70,7 @@ public class Interpolator {
         }
 
         listSize = originalList.size();
-
+        System.out.println("original size " + listSize);
         return originalList;
 
     }
@@ -79,27 +79,32 @@ public class Interpolator {
 
     public SortedMap<BigDecimal, BigDecimal> linearInterp(XYDataset dataset, int size) {
 
-        double[] y = new double[size];
-        double[] x = new double[size];
+        double[] y = new double[size + 1];
+        double[] x = new double[size + 1];
 //        double[] xi = new double[listSize];
         wavelenths.clear();
         interpolatedDataset.clear();
 
-        for (int i = 0; i < size; i++) {
-            x[i] = dataset.getXValue(0, i);
-            y[i] = dataset.getYValue(0, i);
+        //first point
+        x[0] = originalList.get(0).getWavenumber().doubleValue();
+        y[0] = originalList.get(0).getTransmittance().doubleValue();
+
+        for (int i = 0; i < size - 1; i++) {
+            x[i + 1] = dataset.getXValue(0, i);
+            y[i + 1] = dataset.getYValue(0, i);
         }
+        //last point
+        x[size] = originalList.get(listSize - 1).getWavenumber().doubleValue();
+        y[size] = originalList.get(listSize - 1).getTransmittance().doubleValue();
 
         for (int i = 0; i < listSize; i++) {
             double w = originalList.get(i).getWavenumber().doubleValue();
-            if (w > x[0] && w < x[x.length - 1]) {
-
-                wavelenths.add(BigDecimal.valueOf(w));
-
-            }
-
+//            if (w >= x[0] && w <= x[x.length - 1]) {
+            wavelenths.add(BigDecimal.valueOf(w));
+//            }
         }
 
+        System.out.println("Wavelengths size " + wavelenths.size());
         LinearInterpolator li = new LinearInterpolator(); // or other interpolator
         PolynomialSplineFunction psf = li.interpolate(x, y);
 
@@ -122,22 +127,19 @@ public class Interpolator {
         interpolatedDataset.clear();
 
         for (int i = 0; i < size; i++) {
-            x[i] = dataset.getXValue(0, i);
-            y[i] = dataset.getYValue(0, i);
+            x[i] = dataset.getXValue(0, i); //candidate point list's X value
+            y[i] = dataset.getYValue(0, i); //candidate point list's Y value
         }
 
         for (int i = 0; i < listSize; i++) {
             double w = originalList.get(i).getWavenumber().doubleValue();
-            if (w > x[0] && w < x[x.length - 1]) {
+//            if (w > x[0] && w < x[x.length - 1]) {
 //                xi[i] = w;
-                wavelenths.add(BigDecimal.valueOf(w));
+            wavelenths.add(BigDecimal.valueOf(w));
 
-            }
-
+//            }
         }
-
-        System.out.println(x[0] + " " + x[x.length - 1]);
-        System.out.println(wavelenths.get(0));
+        System.out.println("Wavelengths size " + wavelenths.size());
 
         SplineInterpolator li = new SplineInterpolator(); // or other interpolator
         PolynomialSplineFunction psf = li.interpolate(x, y);
@@ -156,29 +158,31 @@ public class Interpolator {
 
     public SortedMap<BigDecimal, BigDecimal> cubicInterp(XYDataset dataset, int size) {
 
-        double[] y = new double[size];
-        double[] x = new double[size];
+        double[] y = new double[size + 1];
+        double[] x = new double[size + 1];
         double[] xi = new double[listSize];
         wavelenths.clear();
         interpolatedDataset.clear();
 
-        for (int i = 0; i < size; i++) {
-            x[i] = dataset.getXValue(0, i);
-            y[i] = dataset.getYValue(0, i);
+        //first point
+        x[0] = originalList.get(0).getWavenumber().doubleValue();
+        y[0] = originalList.get(0).getTransmittance().doubleValue();
+
+        for (int i = 0; i < size - 1; i++) {
+            x[i + 1] = dataset.getXValue(0, i);
+            y[i + 1] = dataset.getYValue(0, i);
         }
+        //last point
+        x[size] = originalList.get(listSize - 1).getWavenumber().doubleValue();
+        y[size] = originalList.get(listSize - 1).getTransmittance().doubleValue();
 
         for (int i = 0; i < listSize; i++) {
             double w = originalList.get(i).getWavenumber().doubleValue();
-            if (w > x[0] && w < x[x.length - 1]) {
-//                xi[i] = w;
-                wavelenths.add(BigDecimal.valueOf(w));
-
-            }
-
+//            if (w >= x[0] && w <= x[x.length - 1]) {
+            wavelenths.add(BigDecimal.valueOf(w));
+//            }
         }
-
-        System.out.println(x[0] + " " + x[x.length - 1]);
-        System.out.println(wavelenths.get(0));
+        System.out.println("wavelength size  " + wavelenths.size());
 
         AkimaSplineInterpolator li = new AkimaSplineInterpolator(); // or other interpolator
         PolynomialSplineFunction psf = li.interpolate(x, y);
@@ -186,27 +190,30 @@ public class Interpolator {
 //        UnivariateInterpolator
         double[] yi = new double[wavelenths.size()];
         for (int i = 0; i < wavelenths.size(); i++) {
-//            yi[i] = psf.value(xi[i]);
             yi[i] = psf.value(wavelenths.get(i).doubleValue());
 
             interpolatedDataset.put(wavelenths.get(i), BigDecimal.valueOf(yi[i]));
         }
-        System.out.println(interpolatedDataset.size());
+        System.out.println("interpolatedDataset.size() " + interpolatedDataset.size());
         return interpolatedDataset;
     }
 
-    public void getDifferencewithLine() {
+    public SortedMap<BigDecimal, BigDecimal> getDifferencewithLine() {
 
         for (int i = 0; i < listSize; i++) {
             double tr = originalList.get(i).getTransmittance().doubleValue();
             BigDecimal wv = originalList.get(i).getWavenumber();
             double y = interpolatedDataset.get(wv).doubleValue();
+//            System.out.println("y  " + y);
 
-            double a = Math.abs(tr - y);
+//            double a = Math.abs(tr - y);
+            double a = tr - y;
             BigDecimal difference = BigDecimal.valueOf(a);
 
             substractedPointList.put(wv, difference);
         }
+
+        return substractedPointList;
 
     }
 
