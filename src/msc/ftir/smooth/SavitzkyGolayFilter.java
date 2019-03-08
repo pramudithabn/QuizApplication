@@ -41,6 +41,10 @@ public class SavitzkyGolayFilter {
     private int listSize = 0;
     private SortedMap<BigDecimal, BigDecimal> pointset = new TreeMap<BigDecimal, BigDecimal>();
     private SortedMap<BigDecimal, BigDecimal> filteredPointset = new TreeMap<BigDecimal, BigDecimal>();
+
+    public SortedMap<BigDecimal, BigDecimal> getFilteredPointset() {
+        return filteredPointset;
+    }
     private double m1 = 0; //gradient of the regression line
     private double c1 = 0; //intercept of the regression line
     public static int count = 0;

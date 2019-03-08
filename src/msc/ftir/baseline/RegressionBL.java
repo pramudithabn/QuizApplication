@@ -7,6 +7,7 @@ package msc.ftir.baseline;
 
 import java.awt.Color;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -44,6 +45,12 @@ public class RegressionBL {
     public SortedMap<BigDecimal, BigDecimal> line2Points = new TreeMap<BigDecimal, BigDecimal>();
     private SortedMap<BigDecimal, BigDecimal> hdifferenceBetweenPoints = new TreeMap<BigDecimal, BigDecimal>();
     private SortedMap<BigDecimal, BigDecimal> baseLineCorrected = new TreeMap<BigDecimal, BigDecimal>();
+    private double Y = 0;
+
+    public double getY() {
+        return Y;
+    }
+    private double y = 0;
 
     public SortedMap<BigDecimal, BigDecimal> getBaseLineCorrected() {
         return baseLineCorrected;
@@ -54,6 +61,14 @@ public class RegressionBL {
     }
 
     private double m1 = 0; //gradient of the regression line
+
+    public double getM1() {
+        return m1;
+    }
+
+    public double getC1() {
+        return c1;
+    }
     private double c1 = 0; //intercept of the regression line
     private double m2 = 0; //gradient of the perpendicular line to the regression line
     private double c2 = 0; //intercept of the perpendicular line to the regression line
@@ -220,20 +235,46 @@ public class RegressionBL {
     }
 
     public SortedMap<BigDecimal, BigDecimal> getDifferencewithLine() {
+        
+        String sql = "SELECT TRANSMITTANCE , count(TRANSMITTANCE) FROM avg_data GROUP BY TRANSMITTANCE DESC LIMIT 1"; //mode
+       
+        ResultSet rss = null;
+        PreparedStatement pst = null;
+        
+
+        try {
+            pst = conn.prepareStatement(sql);
+            rss = pst.executeQuery();
+            while (rss.next()) {
+                Y = rss.getBigDecimal(1).doubleValue();
+//                System.out.println("YYYY"+Y);
+            }
+
+        } catch (Exception e) {
+            System.err.println(e);
+        } finally {
+            try {
+                rss.close();
+                pst.close();
+            } catch (Exception e) {
+                System.err.println(e);
+            }
+        }
 
         for (int i = 0; i < slistSize; i++) {
             double tr = smoothedList.get(i).getTransmittance().doubleValue();
             BigDecimal wv = smoothedList.get(i).getWavenumber();
             double x = smoothedList.get(i).getWavenumber().doubleValue();
 //            double y = linePoints.get(wv).doubleValue(); //transmittance according to regression line w.r.t. to wavelength
-            double y = m1 * x + c1;
+//            double y = m1 * x + c1;
 //            double a = Math.abs(tr - y);
-            double a = tr - y;
+            double a = tr - y + Y;
             BigDecimal difference = BigDecimal.valueOf(a);
 
             hdifferenceBetweenPoints.put(wv, difference);
         }
         
+        updateBLcorrectedValue();
         return hdifferenceBetweenPoints;
 //        System.out.println(" ");
 //        for (BigDecimal wvl : linePoints.keySet()) {
@@ -261,55 +302,28 @@ public class RegressionBL {
         XYPlot xyplot = chart.getXYPlot();
         xyplot.setDataset(2, dataset);
         XYLineAndShapeRenderer xylineandshaperenderer = new XYLineAndShapeRenderer(true, false);
-        xylineandshaperenderer.setSeriesPaint(0, Color.magenta);
+        xylineandshaperenderer.setSeriesPaint(0, Color.red);
         xyplot.setRenderer(2, xylineandshaperenderer);
 
         //get query of avg_data table
         qdata_avg();
-
+        
+        linePoints.clear();
         //calculate y values for all wavelengths (x) using regression line equation
         for (int i = 0; i < slistSize; i++) {
             double x = smoothedList.get(i).getWavenumber().doubleValue();
-            double a = m1 * x + c1;
-            BigDecimal y = BigDecimal.valueOf(a);
-            linePoints.put(BigDecimal.valueOf(x), y);
+            y = m1 * x + c1;
+            BigDecimal a = BigDecimal.valueOf(y);
+            linePoints.put(BigDecimal.valueOf(x), a);
 
         }
 
         getDifferencewithLine(); //difference between actual and regression data
-//        perpendicularDistanceWithLine();
+
 
     }
 
-    public void perpendicularDistanceWithLine() {
-
-        // y = -(1/m) + c2 eqn of the perpendicular line
-        m2 = -(1 / m1);
-
-        for (int i = 0; i < smoothedList.size(); i++) {
-
-            double x = smoothedList.get(i).getWavenumber().doubleValue();
-            double y = smoothedList.get(i).getTransmittance().doubleValue();
-
-            c2 = y - (m2 * x);
-
-            double x0, y0;
-
-            x0 = (c2 - c1) / (m1 - m2);
-            y0 = m1 * x0 + c1;
-
-            double X, Y, r;
-            r = hdifferenceBetweenPoints.get(BigDecimal.valueOf(x)).doubleValue();
-
-            X = x0 - x;
-            Y = Math.sqrt((r * r) - (X * X));
-//            System.out.println(x + " " + Y + " " + y);
-
-            baseLineCorrected.put(BigDecimal.valueOf(x), BigDecimal.valueOf(Y));
-
-        }
-
-    }
+    
 
     public void drawPolynomialFit(JFreeChart chart, XYDataset inputData, int lowerB, int upperB) {
         /* Returns the parameters 'a0', 'a1', 'a2', ..., 'an' for a polynomial 
@@ -350,14 +364,99 @@ public class RegressionBL {
         for (int i = 0; i < slistSize; i++) {
             double x = smoothedList.get(i).getWavenumber().doubleValue();
 //            double a = (a4 * x * x * x * x) + (a3 * x * x * x) + (a2 * x * x) + (a1 * x) + a0;
-            double a = (a2 * x * x) + (a1 * x) + a0;
-            BigDecimal y = BigDecimal.valueOf(a);
-            linePoints.put(BigDecimal.valueOf(x), y);
+            y = (a2 * x * x) + (a1 * x) + a0;
+            BigDecimal a = BigDecimal.valueOf(y);
+            linePoints.put(BigDecimal.valueOf(x), a);
 
         }
 
         getDifferencewithLine(); //difference between actual and regression data
 
+
+    }
+    
+    public void updateBLcorrectedValue() {
+        clearAvgTable();
+        String fullarrays = "";
+
+        for (BigDecimal wavelength : hdifferenceBetweenPoints.keySet()) {
+
+            BigDecimal key = wavelength;
+            BigDecimal value = hdifferenceBetweenPoints.get(wavelength);
+
+            String twoarrays = "(" + key + " , " + value.setScale(8, RoundingMode.UP) + ")";
+            fullarrays = fullarrays + twoarrays + ",";
+        }
+
+        fullarrays = fullarrays.substring(0, fullarrays.length() - 1);
+
+        String sql = "INSERT INTO baseline_data (wavenumber,transmittance)  VALUES " + fullarrays;
+        ResultSet rs = null;
+        PreparedStatement pst = null;
+
+        try {
+            pst = conn.prepareStatement(sql);
+            pst.executeUpdate();
+
+        } catch (Exception e) {
+            System.err.println(e);
+        } finally {
+            try {
+                rs.close();
+                pst.close();
+            } catch (Exception e) {
+
+            }
+        }
+
+    }
+
+    public void clearAvgTable() {
+
+        String sql1 = "delete from baseline_data";
+        try {
+            pst = conn.prepareStatement(sql1);
+            pst.executeUpdate();
+
+        } catch (Exception e) {
+            System.out.println(e);
+        } finally {
+            try {
+                pst.close();
+
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        }
+    }
+    
+    public void perpendicularDistanceWithLine() {
+
+        // y = -(1/m) + c2 eqn of the perpendicular line
+        m2 = -(1 / m1);
+
+        for (int i = 0; i < smoothedList.size(); i++) {
+
+            double x = smoothedList.get(i).getWavenumber().doubleValue();
+            double y = smoothedList.get(i).getTransmittance().doubleValue();
+
+            c2 = y - (m2 * x);
+
+            double x0, y0;
+
+            x0 = (c2 - c1) / (m1 - m2);
+            y0 = m1 * x0 + c1;
+
+            double X, Y, r;
+            r = hdifferenceBetweenPoints.get(BigDecimal.valueOf(x)).doubleValue();
+
+            X = x0 - x;
+            Y = Math.sqrt((r * r) - (X * X));
+//            System.out.println(x + " " + Y + " " + y);
+
+            baseLineCorrected.put(BigDecimal.valueOf(x), BigDecimal.valueOf(Y));
+
+        }
 
     }
 

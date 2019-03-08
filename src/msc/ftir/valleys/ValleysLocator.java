@@ -12,12 +12,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
-import java.util.NavigableSet;
-import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
@@ -25,7 +21,6 @@ import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import msc.ftir.main.InputData;
 import msc.ftir.main.Javaconnect;
-import msc.ftir.main.MainWindow;
 import org.jfree.data.statistics.Regression;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
@@ -52,12 +47,24 @@ public class ValleysLocator {
     private double c;
     private static ArrayList<InputData> smoothedPointList = new ArrayList<InputData>();
 
+    public static ArrayList<InputData> getSmoothedPointList() {
+        return smoothedPointList;
+    }
+    private static ArrayList<InputData> baselineCorrectedPointList = new ArrayList<InputData>();
+
+    public static ArrayList<InputData> getBaselineCorrectedPointList() {
+        return baselineCorrectedPointList;
+    }
+
     private int listSize;
     public ArrayList<BigDecimal> transmittanceValues = new ArrayList<BigDecimal>();
 
     //original data map
     private NavigableMap<BigDecimal, BigDecimal> allPoints = new TreeMap<BigDecimal, BigDecimal>();
-
+    
+    //baseline data map
+    private NavigableMap<BigDecimal, BigDecimal> bcPoints = new TreeMap<BigDecimal, BigDecimal>();
+    
     //candidate valley set 
     private NavigableMap<BigDecimal, BigDecimal> candidates = new TreeMap<BigDecimal, BigDecimal>();
 
@@ -91,15 +98,15 @@ public class ValleysLocator {
         this.valleyCandidates = valleyCandidates;
     }
 
-    public ValleysLocator() {
+    public ValleysLocator(String tb) {
         conn = Javaconnect.ConnecrDb();
-        qdata();
+        qdata(tb);
 
     }
 
-    public ArrayList<InputData> qdata() {
+    public ArrayList<InputData> qdata(String tablename) {
 
-        String sql = "select * from avg_data";
+        String sql = "select * from "+tablename;
         ResultSet rs = null;
         PreparedStatement pst = null;
         allPoints.clear();
@@ -131,32 +138,58 @@ public class ValleysLocator {
         return smoothedPointList;
 
     }
+    
+    public ArrayList<InputData> qBLdata() {
 
-    public static void main(String[] args) {
-        ValleysLocator v1 = new ValleysLocator();
-        v1.cal_1storder_derivative();
-        v1.cal_2ndorder_derivative();
-        v1.candidateSet();
-        v1.peakTopSet();
-//        v1.discardBelowThresh(50, -0.0230135, 0.2179635);
-//        v1.adjustNoiseLevel(10);
-        v1.evaluateNeighbourhood();
-//        v1.cal_h(10);
+        String sql = "select * from baseline_data";
+        ResultSet rs = null;
+        PreparedStatement pst = null;
+        allPoints.clear();
+        baselineCorrectedPointList.clear();
+        smoothedPointList.clear();
+
+        try {
+            pst = conn.prepareStatement(sql);
+            rs = pst.executeQuery();
+            InputData d;
+            while (rs.next()) {
+                d = new InputData(rs.getInt("ID"), rs.getBigDecimal("WAVENUMBER"), rs.getBigDecimal("TRANSMITTANCE"));
+                baselineCorrectedPointList.add(d);
+//                smoothedPointList.add(d);
+                allPoints.put(rs.getBigDecimal("WAVENUMBER"), rs.getBigDecimal("TRANSMITTANCE"));
+
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(Javaconnect.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                rs.close();
+                pst.close();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, e);
+            }
+        }
+
+        listSize = baselineCorrectedPointList.size();
+        System.out.println("list size " + listSize);
+        return baselineCorrectedPointList;
 
     }
 
+
+
     //1. 1st order derivatives    
-    public void cal_1storder_derivative() {
+    public void cal_1storder_derivative(ArrayList<InputData> list) {
 
         double x1 = 0, x2 = 0, x3 = 0;
         double y1 = 0, y2 = 0, y3 = 0;
         BigDecimal result = null;
 
-        x1 = smoothedPointList.get(0).getWavenumber().doubleValue();
-        x2 = smoothedPointList.get(1).getWavenumber().doubleValue();
+        x1 = list.get(0).getWavenumber().doubleValue();
+        x2 = list.get(1).getWavenumber().doubleValue();
 
-        y1 = smoothedPointList.get(0).getTransmittance().doubleValue();
-        y2 = smoothedPointList.get(1).getTransmittance().doubleValue();
+        y1 = list.get(0).getTransmittance().doubleValue();
+        y2 = list.get(1).getTransmittance().doubleValue();
 
         result = BigDecimal.valueOf((y2 - y1) / (x2 - x1));
 
@@ -164,12 +197,12 @@ public class ValleysLocator {
 
         for (int i = 1; i <= listSize - 2; i++) {
 
-            x1 = smoothedPointList.get(i - 1).getWavenumber().doubleValue();
-            BigDecimal xn = smoothedPointList.get(i).getWavenumber();
-            x2 = smoothedPointList.get(i + 1).getWavenumber().doubleValue();
+            x1 = list.get(i - 1).getWavenumber().doubleValue();
+            BigDecimal xn = list.get(i).getWavenumber();
+            x2 = list.get(i + 1).getWavenumber().doubleValue();
 
-            y1 = smoothedPointList.get(i - 1).getTransmittance().doubleValue();
-            y2 = smoothedPointList.get(i + 1).getTransmittance().doubleValue();
+            y1 = list.get(i - 1).getTransmittance().doubleValue();
+            y2 = list.get(i + 1).getTransmittance().doubleValue();
 
             double d1 = (y2 - y1) / (x2 - x1);
 
@@ -177,43 +210,43 @@ public class ValleysLocator {
             firstOrderDerivatives.put(xn, result);
         }
 
-        x1 = smoothedPointList.get(listSize - 2).getWavenumber().doubleValue();
-        x2 = smoothedPointList.get(listSize - 1).getWavenumber().doubleValue();
-        y1 = smoothedPointList.get(listSize - 2).getTransmittance().doubleValue();
-        y2 = smoothedPointList.get(listSize - 1).getTransmittance().doubleValue();
+        x1 = list.get(listSize - 2).getWavenumber().doubleValue();
+        x2 = list.get(listSize - 1).getWavenumber().doubleValue();
+        y1 = list.get(listSize - 2).getTransmittance().doubleValue();
+        y2 = list.get(listSize - 1).getTransmittance().doubleValue();
 
         result = BigDecimal.valueOf((y2 - y1) / (x2 - x1));
 
-        firstOrderDerivatives.put(smoothedPointList.get(listSize - 1).getWavenumber(), result);
+        firstOrderDerivatives.put(list.get(listSize - 1).getWavenumber(), result);
 
         System.out.println("FOD " + firstOrderDerivatives.size());
 
     }
 
     //2nd order derivatives
-    public void cal_2ndorder_derivative() {
+    public void cal_2ndorder_derivative(ArrayList<InputData> list) {
 
         SortedMap<BigDecimal, BigDecimal> three_pointset = new TreeMap<BigDecimal, BigDecimal>();
 
-        BigDecimal firstx = smoothedPointList.get(0).getWavenumber();
-        BigDecimal firsty = smoothedPointList.get(0).getTransmittance();
-        BigDecimal lastx = smoothedPointList.get(listSize - 1).getWavenumber();
-        BigDecimal lasty = smoothedPointList.get(listSize - 1).getTransmittance();
+        BigDecimal firstx = list.get(0).getWavenumber();
+        BigDecimal firsty = list.get(0).getTransmittance();
+        BigDecimal lastx = list.get(listSize - 1).getWavenumber();
+        BigDecimal lasty = list.get(listSize - 1).getTransmittance();
 
         secondOrderDerivatives.put(firstx, firsty);
 
         for (int rindex = 1; rindex <= listSize - 2; rindex++) {
 
 //            BigDecimal y0 = smoothedPointList.get(rindex - 2).getTransmittance();
-            BigDecimal y1 = smoothedPointList.get(rindex - 1).getTransmittance();
-            BigDecimal y2 = smoothedPointList.get(rindex).getTransmittance();
-            BigDecimal y3 = smoothedPointList.get(rindex + 1).getTransmittance();
+            BigDecimal y1 = list.get(rindex - 1).getTransmittance();
+            BigDecimal y2 = list.get(rindex).getTransmittance();
+            BigDecimal y3 = list.get(rindex + 1).getTransmittance();
 //            BigDecimal y4 = smoothedPointList.get(rindex + 2).getTransmittance();
 
 //            BigDecimal x0 = smoothedPointList.get(rindex - 1).getWavenumber();
-            BigDecimal x1 = smoothedPointList.get(rindex - 1).getWavenumber();
-            BigDecimal x2 = smoothedPointList.get(rindex).getWavenumber();
-            BigDecimal x3 = smoothedPointList.get(rindex + 1).getWavenumber();
+            BigDecimal x1 = list.get(rindex - 1).getWavenumber();
+            BigDecimal x2 = list.get(rindex).getWavenumber();
+            BigDecimal x3 = list.get(rindex + 1).getWavenumber();
 //            BigDecimal x5 = smoothedPointList.get(rindex - 1).getWavenumber();
 
             //find y value by regression equation
@@ -238,21 +271,21 @@ public class ValleysLocator {
         secondOrderDerivatives.put(lastx, lasty);
 
         //print list
-        for (BigDecimal wavelength : secondOrderDerivatives.keySet()) {
-
-            BigDecimal key = wavelength;
-            BigDecimal fod = firstOrderDerivatives.get(wavelength);
-            BigDecimal sod = secondOrderDerivatives.get(wavelength);
-
-            System.out.println(key + " , " + fod + " , " + sod);
-        }
+//        for (BigDecimal wavelength : secondOrderDerivatives.keySet()) {
+//
+//            BigDecimal key = wavelength;
+//            BigDecimal fod = firstOrderDerivatives.get(wavelength);
+//            BigDecimal sod = secondOrderDerivatives.get(wavelength);
+//
+//            System.out.println(key + " , " + fod + " , " + sod);
+//        }
         System.out.println("SOD " + secondOrderDerivatives.size());
 
     }
 
     //3. create a candidate set
-    public NavigableMap<BigDecimal, BigDecimal> candidateSet() {
-
+    public NavigableMap<BigDecimal, BigDecimal> findCandidateSet() {
+        candidates.clear();
         for (Entry<BigDecimal, BigDecimal> entry : firstOrderDerivatives.entrySet()) {
 
             BigDecimal key = entry.getKey(); //current key
@@ -292,17 +325,18 @@ public class ValleysLocator {
         upperT = u;
         NavigableMap<BigDecimal, BigDecimal> temp = new TreeMap<BigDecimal, BigDecimal>();
 
-        System.out.println(lowerB + "," + upperT);
-        double threshold = ((upperT - lowerB) / 100) * n;
+//        System.out.println(lowerB + "," + upperT);
+//        System.out.println(n + "," + (100-n));
+        double threshold = ((upperT - lowerB) / 100) * (100 - n);
 
-        System.out.println("Threshold old " + threshold);
+//        System.out.println("Threshold old " + threshold);
 
         //adjust the new value to existing noiseLevel
         if (lowerB < 0) {
             threshold = threshold + lowerB;
         }
 
-        System.out.println("Threshold " + threshold);
+//        System.out.println("Threshold " + threshold);
         temp.clear();
 
         for (BigDecimal wvl : candidates.keySet()) {
@@ -310,7 +344,7 @@ public class ValleysLocator {
             double value = candidates.get(wvl).doubleValue();
             BigDecimal key = wvl;
 
-            if (value > threshold) {
+            if (value < threshold) {
                 temp.put(key, BigDecimal.valueOf(value));
             }
         }
@@ -413,7 +447,6 @@ public class ValleysLocator {
         NavigableMap<BigDecimal, BigDecimal> valleys = new TreeMap<BigDecimal, BigDecimal>();
         NavigableMap<BigDecimal, BigDecimal> peaks = new TreeMap<BigDecimal, BigDecimal>();
         NavigableMap<BigDecimal, BigDecimal> temp = new TreeMap<BigDecimal, BigDecimal>();
-     
 
         valleys = getCandidates();
         peaks = peakTopSet();
@@ -434,7 +467,6 @@ public class ValleysLocator {
                 double v_y = entry.getValue().doubleValue();
                 double v_x = entry.getKey().doubleValue();
 
-
                 double grad1_2 = (v_y - p1_y) / (v_x - p1_x);
                 double grad2_3 = (p3_y - v_y) / (p3_x - v_x);
 
@@ -448,7 +480,7 @@ public class ValleysLocator {
         }
         candidates.clear();
         candidates = temp;
-        System.out.println("NEWWWW "+candidates.size());
+//        System.out.println("NEWWWW " + candidates.size());
 
         /* 
         boolean right_exist_ptops = false, left_exist_ptops = false;
@@ -688,10 +720,10 @@ public class ValleysLocator {
     //final: Valley alogorithm
     public void peakBottomsDetector(double down, double up) {
 
-        ValleysLocator v1 = new ValleysLocator();
-        v1.cal_1storder_derivative();
-        v1.cal_2ndorder_derivative();
-        v1.candidateSet();
+        ValleysLocator v1 = new ValleysLocator("baseline_data");
+        v1.cal_1storder_derivative(smoothedPointList);
+        v1.cal_2ndorder_derivative(smoothedPointList);
+        v1.findCandidateSet();
         v1.discardBelowThresh(50, down, up);
         v1.cal_h(150);
         v1.evaluateNeighbourhood();
@@ -750,7 +782,7 @@ public class ValleysLocator {
 
     public void point3Valleys() {
 
-        qdata();
+        qdata("avg_data");
         valleyCandidates.clear();
 
         double x1 = 0, x2 = 0, x3 = 0;
@@ -1241,6 +1273,21 @@ public class ValleysLocator {
 //            System.out.println("new list " + key + " " + value);
 //        }
         return peaktops;
+    }
+    
+    private XYDataset createDataset(NavigableMap<BigDecimal, BigDecimal> pointList) {
+        final XYSeries valleyPoints = new XYSeries("Valley Points");
+
+        for (BigDecimal wavelength : pointList.keySet()) {
+
+            BigDecimal key = wavelength;
+            BigDecimal value = pointList.get(wavelength);
+            valleyPoints.add(key, value);
+
+        }
+        final XYSeriesCollection dataset = new XYSeriesCollection();
+        dataset.addSeries(valleyPoints);
+        return dataset;
     }
 
 }

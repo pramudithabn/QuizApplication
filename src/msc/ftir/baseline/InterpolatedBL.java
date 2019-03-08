@@ -6,6 +6,7 @@
 package msc.ftir.baseline;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -37,6 +38,11 @@ public class InterpolatedBL {
     private ArrayList<BigDecimal> wavelenths = new ArrayList<BigDecimal>();
     private int listSize;
     private SortedMap<BigDecimal, BigDecimal> substractedPointList = new TreeMap<BigDecimal, BigDecimal>();
+    private double Y = 0;
+
+    public double getY() {
+        return Y;
+    }
 
     public InterpolatedBL() {
         conn = Javaconnect.ConnecrDb();
@@ -194,11 +200,37 @@ public class InterpolatedBL {
 
             interpolatedDataset.put(wavelenths.get(i), BigDecimal.valueOf(yi[i]));
         }
-        System.out.println("interpolatedDataset.size() " + interpolatedDataset.size());
+        System.out.println("interpolatedDataset.size " + interpolatedDataset.size());
+       
         return interpolatedDataset;
     }
 
     public SortedMap<BigDecimal, BigDecimal> getDifferencewithLine() {
+
+//        String sql = "select avg(TRANSMITTANCE) from avg_data"; // avg
+        String sql = "SELECT TRANSMITTANCE , count(TRANSMITTANCE) FROM avg_data GROUP BY TRANSMITTANCE DESC LIMIT 1"; //mode
+       
+        ResultSet rss = null;
+        PreparedStatement pst = null;
+        
+
+        try {
+            pst = conn.prepareStatement(sql);
+            rss = pst.executeQuery();
+            while (rss.next()) {
+                Y = rss.getBigDecimal(1).doubleValue();
+            }
+
+        } catch (Exception e) {
+            System.err.println(e);
+        } finally {
+            try {
+                rss.close();
+                pst.close();
+            } catch (Exception e) {
+                System.err.println(e);
+            }
+        }
 
         for (int i = 0; i < listSize; i++) {
             double tr = originalList.get(i).getTransmittance().doubleValue();
@@ -207,14 +239,71 @@ public class InterpolatedBL {
 //            System.out.println("y  " + y);
 
 //            double a = Math.abs(tr - y);
-            double a = tr - y;
+            double a = tr - y + Y;
             BigDecimal difference = BigDecimal.valueOf(a);
 
             substractedPointList.put(wv, difference);
         }
 
+        updateBLcorrectedValue();
+
         return substractedPointList;
 
+    }
+
+    public void updateBLcorrectedValue() {
+        clearTable();
+        String fullarrays = "";
+
+        for (BigDecimal wavelength : substractedPointList.keySet()) {
+
+            BigDecimal key = wavelength;
+            BigDecimal value = substractedPointList.get(wavelength);
+
+            String twoarrays = "(" + key + " , " + value.setScale(8, RoundingMode.UP) + ")";
+            fullarrays = fullarrays + twoarrays + ",";
+        }
+
+        fullarrays = fullarrays.substring(0, fullarrays.length() - 1);
+
+        String sql = "INSERT INTO baseline_data (wavenumber,transmittance)  VALUES " + fullarrays;
+        ResultSet rs = null;
+        PreparedStatement pst = null;
+
+        try {
+            pst = conn.prepareStatement(sql);
+            pst.executeUpdate();
+
+        } catch (Exception e) {
+            System.err.println(e);
+        } finally {
+            try {
+                rs.close();
+                pst.close();
+            } catch (Exception e) {
+
+            }
+        }
+
+    }
+
+    public void clearTable() {
+
+        String sql1 = "delete from baseline_data";
+        try {
+            pst = conn.prepareStatement(sql1);
+            pst.executeUpdate();
+
+        } catch (Exception e) {
+            System.out.println(e);
+        } finally {
+            try {
+                pst.close();
+
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        }
     }
 
 }
